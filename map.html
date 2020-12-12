@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>map view demo - NetGardens Online</title>
+		<style>
+			html {
+				font-family: sans-serif;
+			}
+			canvas {
+				border: 1px solid black;
+			}
+			.mapbox { display: flex; width: 100%; }
+			.mapsidebar {
+				padding: 0 1ex;
+				border: 1px solid grey;
+			}
+			#maptitle {
+				font-weight: bold;
+				font-size: 24pt;
+				margin-top: 1ex;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>NG.O Map View Demo</h1>
+		<div class="mapbox">
+			<canvas id="mapcanvas" width="400" height="400"></canvas>
+			<div class="mapsidebar">
+				<p id="maptitle">Debug Park</p>
+				<p>X tile: <span id="x">???</span></p>
+				<p>Y tile: <span id="y">???</span></p>
+			</div>
+		</div>
+	</body>
+	<script>
+		'using strict'
+		let X_POS = 32;
+		let Y_POS = 128;
+		let X_TILESIZE = 128;
+		let Y_TILESIZE = 64;
+		let canvas = null;
+		let ctx = null;
+
+		// get an array of tiles to be rendered onto the screen
+		function Tiles_Get()
+		{
+			return [
+				['red', 'blue', 'cyan'],
+				['green', 'purple', 'magenta'],
+				['yellow', 'orange', 'teal']
+			];
+		}
+
+		// just a generic grid-like thing for now
+		function Render_Step_Grid(ctx)
+		{
+			let x = X_POS;
+			let y = Y_POS;
+			let xi = 0;
+			let yi = 0;
+
+			const tiles = Tiles_Get();
+			for (const row of tiles) {
+				for (const tile of row) {
+					ctx.fillStyle = tile;
+
+					// render isometric tile
+					ctx.beginPath();
+					ctx.moveTo(x, y+(Y_TILESIZE / 2));
+					ctx.lineTo(x+(X_TILESIZE/2), y+(Y_TILESIZE));
+					ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+					ctx.lineTo(x+(X_TILESIZE/2), y);
+					ctx.closePath();
+					ctx.fill();
+
+					x += X_TILESIZE / 2;
+					y -= Y_TILESIZE / 2;
+					xi += 1;
+				}
+				x = X_POS + ((yi+1) * X_TILESIZE / 2);
+				y += (Y_TILESIZE / 2) * (xi + 1);
+				xi = 0;
+				yi += 1;
+			}
+		}
+		
+		function Render_Step(timestamp)
+		{
+			Render_Step_Grid(ctx);
+		}
+
+		function Render_Init()
+		{
+			canvas = document.getElementById('mapcanvas');
+			if (!canvas.getContext) { return; }
+			ctx = canvas.getContext('2d', {alpha: false});
+
+			// on each frame
+			window.requestAnimationFrame(Render_Step);
+		}
+
+		Render_Init();
+	</script>
+</html>
