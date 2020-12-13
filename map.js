@@ -199,6 +199,10 @@ function Render_Init()
 			e.offsetX - MOUSE_START[0],
 			e.offsetY - MOUSE_START[1]
 		];
+		// if total movement less than 8 pixels
+		if (Math.abs(MOUSE_LAST[0]) + Math.abs(MOUSE_LAST[1]) < 8) {
+			console.log("Click!");
+		}
 	};
 
 	canvas.onmousemove = function(e)
@@ -212,7 +216,7 @@ function Render_Init()
 			e.offsetY - MOUSE_START[1]
 		];
 
-		console.log(MOUSE_POS_START, MOUSE_LAST);
+		//console.log(MOUSE_POS_START, MOUSE_LAST);
 		X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
 		Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
 	}
