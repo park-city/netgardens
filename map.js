@@ -1,12 +1,21 @@
 'use strict';
-let X_POS = 32;
-let Y_POS = 128;
-let X_TILESIZE = 128;
-let Y_TILESIZE = 64;
+let X_POS = 0;
+let Y_POS = 0;
+let X_TILESIZE = 64;
+let Y_TILESIZE = 32;
 let TIME_START = 0;
 let TIME_LAST = 0;
 
-const COLORS = ['red', 'blue', 'cyan', 'green', 'purple', 'magenta', 'yellow', 'orange', 'teal', 'pink'];
+//const COLORS = ['red', 'blue', 'cyan', 'green', 'purple', 'magenta', 'yellow', 'orange', 'teal', 'pink'];
+const COLORS = [
+	"#000022",
+	"#000044",
+	"#002266",
+	"#003399",
+	"#0022AA",
+	"#1144CC",
+	"#1155EE",
+]
 
 const NUM_BG = 1;
 let CANVAS_BG = [];
@@ -22,14 +31,27 @@ function mod(n, m) {
 	return ((n % m) + m) % m;
 }
 
+// https://stackoverflow.com/a/10215724
+function resize_canvas(){
+	// primary canvas
+	const canvas = document.getElementById('mapcanvas');
+	if (!canvas.getContext) { return; }
+	// Make it visually fill the positioned parent
+	canvas.style.width ='100%';
+	canvas.style.height='100%';
+	// ...then set the internal size to match
+	canvas.width  = canvas.offsetWidth;
+	canvas.height = canvas.offsetHeight;
+}
+
 // get an array of tiles to be rendered onto the screen
 function Tiles_MakeRandom(w, h)
 {
 	let map = [];
 	for(y = 0; y < h; y += 1) {
 		let row = [];
+		let color = COLORS.random();
 		for (x = 0; x < w; x += 1) {
-			let color = COLORS.random();
 			row.push(color);
 		}
 		map.push(row);
@@ -45,7 +67,7 @@ function Render_Step_BG(ctx, w, h)
 	let xi = 0;
 	let yi = 0;
 
-	const tiles = Tiles_MakeRandom(8, 8);
+	const tiles = Tiles_MakeRandom(w / X_TILESIZE, h / Y_TILESIZE);
 	for (const row of tiles) {
 		for (const tile of row) {
 			ctx.fillStyle = tile;
@@ -83,42 +105,47 @@ function Render_Step(timestamp)
 
 	// temporary motion thing
 	X_POS = Math.cos(time / 2000) * 1024 - 512;
+	//X_POS = 32;
 	Y_POS = Math.sin(time / 500) * 128;
+	//Y_POS = 32;
 
 	// blit background layer to composite canvas
 	ctx.globalCompositeOperation = 'source-over';
-	ctx.clearRect(0, 0, 512, 512); // temporary!
+	ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
 
-	let x_pos = Math.floor(mod(X_POS, CANVAS_BG[0].width));
+	let x_pos = Math.floor(mod(X_POS, CANVAS_BG[0].width));// - (CANVAS_BG[0].width / 2));
+	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG[0].height));// - (CANVAS_BG[0].height / 2));
 
 	const x_off = [
-		(x_pos),                              // far-top
 		(x_pos + (CANVAS_BG[0].width) / 2),   // top-left
 		(x_pos - (CANVAS_BG[0].width) / 2),   // top-right
-		(x_pos + CANVAS_BG[0].width),         // far-left
+		(x_pos - CANVAS_BG[0].width * 1),         // far-left
 		(x_pos),                              // center
 		(x_pos - CANVAS_BG[0].width),         // far-right
 		(x_pos + (CANVAS_BG[0].width) / 2),   // bottom-left
 		(x_pos - (CANVAS_BG[0].width) / 2),   // bottom-right
-		(x_pos)                               // far-bottom
+		(x_pos + (CANVAS_BG[0].width) / 2),   // far-bottom-left
+		(x_pos),                              // far-bottom
+		(x_pos - (CANVAS_BG[0].width) / 2),   // far-bottom-right
 	];
 	const y_off = [
-		(Y_POS - CANVAS_BG[0].height),         // far-top
-		(Y_POS + (CANVAS_BG[0].height) / 2),   // top-left
-		(Y_POS + (CANVAS_BG[0].height) / 2),   // top-right
-		(Y_POS),                               // far-left
-		(Y_POS),                               // center
-		(Y_POS),                               // far-right
-		(Y_POS - (CANVAS_BG[0].height) / 2),   // bottom-left
-		(Y_POS - (CANVAS_BG[0].height) / 2),   // bottom-right
-		(Y_POS + CANVAS_BG[0].height)          // far-bottom
+		(y_pos + (CANVAS_BG[0].height) / 2),   // top-left
+		(y_pos + (CANVAS_BG[0].height) / 2),   // top-right
+		(y_pos - CANVAS_BG[0].height),                               // far-left
+		(y_pos),                               // center
+		(y_pos),                               // far-right
+		(y_pos - (CANVAS_BG[0].height) / 2),   // bottom-left
+		(y_pos - (CANVAS_BG[0].height) / 2),   // bottom-right
+		(y_pos - CANVAS_BG[0].height * 1.5),   // far-bottom-left
+		(y_pos - CANVAS_BG[0].height),         // far-bottom
+		(y_pos - CANVAS_BG[0].height * 1.5)    // far-bottom-right
 	];
-	const num_off = 9;
+	const num_off = 10;
 
 	for(let i = 0; i < num_off; i += 1) {
 		ctx.drawImage(
 			CANVAS_BG[0],
-			x_off[i], y_off[i],                          // src x, y
+			x_off[i], y_off[i],                    // src x, y
 			canvas.width, canvas.height,           // src w, h
 			0, 0, canvas.width, canvas.height      // dst x, y, w, h
 		);
@@ -127,12 +154,14 @@ function Render_Step(timestamp)
 	// print some debug info
 	ctx.font = '14px monospace';
 	ctx.fillStyle = 'white';
-	ctx.fillText('X:         ' + X_POS, 10, 20);
-	ctx.fillText('X % width: ' + x_pos, 10, 40);
+	ctx.fillText('X:          ' + X_POS, 10, 20);
+	ctx.fillText('X % width:  ' + x_pos, 10, 40);
+	ctx.fillText('Y:          ' + Y_POS, 10, 60);
+	ctx.fillText('Y % height: ' + y_pos, 10, 80);
 	
 	// print fps too
 	let fps = Math.round(1/((timestamp - TIME_LAST) / 1000));
-	ctx.fillText("FPS: " + fps, 440, 20);
+	ctx.fillText("FPS: " + fps, canvas.width - 80, 20);
 
 	TIME_LAST = timestamp;
 	window.requestAnimationFrame(Render_Step);
@@ -148,6 +177,8 @@ function Render_Init()
 	CTX_BG[0] = CANVAS_BG[0].getContext('2d');
 	// draw background layers
 	Render_Step_BG(CTX_BG[0], CANVAS_BG[0].width, CANVAS_BG[0].height);
+
+	resize_canvas();
 
 	// on each frame
 	window.requestAnimationFrame(Render_Step);

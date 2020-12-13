@@ -10,6 +10,10 @@
 			canvas {
 				border: 1px solid black;
 			}
+			.mapcanvas-box {
+				width: 100%;
+				height: 95vh;
+			}
 			.mapbox { display: flex; width: 100%; }
 			.mapsidebar {
 				padding: 0 1ex;
@@ -26,7 +30,9 @@
 	<body>
 		<h1>NG.O Map View Demo</h1>
 		<div class="mapbox">
-			<canvas id="mapcanvas" width="512" height="512"></canvas>
+			<div class="mapcanvas-box">
+				<canvas id="mapcanvas"></canvas>
+			</div>
 			<div class="mapsidebar">
 				<p class="maptitle">Debug Park</p>
 				<p>X tile: <span id="x">???</span></p>
@@ -35,7 +41,7 @@
 		</div>
 
 		<div class="mapbox">
-			<canvas id="bg0" width="1024" height="512"></canvas>
+			<canvas id="bg0" width="2048" height="1024"></canvas>
 			<div class="mapsidebar">
 				<p class="maptitle">BG 0</p>
 				<p>center</p>
