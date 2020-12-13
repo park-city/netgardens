@@ -1,10 +1,14 @@
 'use strict';
-let X_POS = 0;
-let Y_POS = 0;
-let X_TILESIZE = 64;
-let Y_TILESIZE = 32;
-let TIME_START = 0;
-let TIME_LAST = 0;
+let X_POS       = 0;
+let Y_POS       = 0;
+let X_TILESIZE  = 64;
+let Y_TILESIZE  = 32;
+let TIME_START  = 0;
+let TIME_LAST   = 0;
+let MOUSE_DOWN  = false;  // whether mouse is pressed
+let MOUSE_START = [];     // 'grab' coordinates when pressing mouse
+let MOUSE_LAST  = [0, 0]; // previous coordinates of mouse release
+let MOUSE_POS_START = [0, 0];
 
 //const COLORS = ['red', 'blue', 'cyan', 'green', 'purple', 'magenta', 'yellow', 'orange', 'teal', 'pink'];
 const COLORS = [
@@ -63,9 +67,10 @@ function Tiles_MakeRandom(w, h)
 function Render_Step_BG(ctx, w, h)
 {
 	let x = 0;
-	let y = (h / 2) - (Y_TILESIZE / 2);
+	let y = Math.floor((h / 2) - (Y_TILESIZE / 2));
 	let xi = 0;
 	let yi = 0;
+	ctx.font = '8px monospace';
 
 	const tiles = Tiles_MakeRandom(w / X_TILESIZE, h / Y_TILESIZE);
 	for (const row of tiles) {
@@ -80,13 +85,15 @@ function Render_Step_BG(ctx, w, h)
 			ctx.lineTo(x+(X_TILESIZE/2), y);
 			ctx.closePath();
 			ctx.fill();
+			ctx.fillStyle = 'white';
+			ctx.fillText(xi + ',' + yi, x, y);
 
 			x += X_TILESIZE / 2;
 			y -= Y_TILESIZE / 2;
 			xi += 1;
 		}
-		x = ((yi+1) * X_TILESIZE / 2);
-		y += (Y_TILESIZE / 2) * (xi + 1);
+		x = Math.floor(((yi+1) * X_TILESIZE / 2));
+		y += Math.floor((Y_TILESIZE / 2) * (xi + 1));
 		xi = 0;
 		yi += 1;
 	}
@@ -104,9 +111,9 @@ function Render_Step(timestamp)
 	const ctx = canvas.getContext('2d', {alpha: false});
 
 	// temporary motion thing
-	X_POS = Math.cos(time / 2000) * 1024 - 512;
+	//X_POS = Math.cos(time / 2000) * 1024 - 512;
 	//X_POS = 32;
-	Y_POS = Math.sin(time / 500) * 128;
+	//Y_POS = Math.sin(time / 500) * 128;
 	//Y_POS = 32;
 
 	// blit background layer to composite canvas
@@ -152,6 +159,9 @@ function Render_Step(timestamp)
 	}
 
 	// print some debug info
+	ctx.fillStyle = 'black';
+	ctx.fillRect(0, 0, 160, 90);
+	ctx.fillRect(canvas.width - 100, 0, 100, 30);
 	ctx.font = '14px monospace';
 	ctx.fillStyle = 'white';
 	ctx.fillText('X:          ' + X_POS, 10, 20);
@@ -169,6 +179,44 @@ function Render_Step(timestamp)
 
 function Render_Init()
 {
+	// primary canvas
+	const canvas = document.getElementById('mapcanvas');
+	if (!canvas.getContext) { return; }
+
+	// register canvas events
+	canvas.onmousedown = function(e) {
+		MOUSE_DOWN = true;
+		MOUSE_START = [
+			e.offsetX,
+			e.offsetY
+		];
+		MOUSE_POS_START = [X_POS, Y_POS];
+	};
+
+	canvas.onmouseup   = function(e) {
+		MOUSE_DOWN = false;
+		MOUSE_LAST = [
+			e.offsetX - MOUSE_START[0],
+			e.offsetY - MOUSE_START[1]
+		];
+	};
+
+	canvas.onmousemove = function(e)
+	{
+		if(!MOUSE_DOWN) return; // don't pan if mouse is not pressed
+
+		var x = e.offsetX;
+		var y = e.offsetY;
+		MOUSE_LAST = [
+			e.offsetX - MOUSE_START[0],
+			e.offsetY - MOUSE_START[1]
+		];
+
+		console.log(MOUSE_POS_START, MOUSE_LAST);
+		X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
+		Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
+	}
+
 	TIME_START = performance.now();
 	TIME_LAST = TIME_START;
 
