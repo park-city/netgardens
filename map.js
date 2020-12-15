@@ -1,8 +1,8 @@
 'use strict';
 let X_POS       = 0;
 let Y_POS       = 0;
-let X_TILESIZE  = 64;
-let Y_TILESIZE  = 32;
+let X_TILESIZE  = 128;
+let Y_TILESIZE  = 64;
 let TIME_START  = 0;
 let TIME_LAST   = 0;
 let MOUSE_DOWN  = false;  // whether mouse is pressed
@@ -54,8 +54,8 @@ function Tiles_MakeRandom(w, h)
 	let map = [];
 	for(y = 0; y < h; y += 1) {
 		let row = [];
-		let color = COLORS.random();
 		for (x = 0; x < w; x += 1) {
+			let color = COLORS.random();
 			row.push(color);
 		}
 		map.push(row);
