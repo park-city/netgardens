@@ -184,7 +184,7 @@ function Render_Init()
 	if (!canvas.getContext) { return; }
 
 	// register canvas events
-	canvas.onmousedown = function(e) {
+	canvas.onpointerdown = function(e) {
 		MOUSE_DOWN = true;
 		MOUSE_START = [
 			e.offsetX,
@@ -193,7 +193,7 @@ function Render_Init()
 		MOUSE_POS_START = [X_POS, Y_POS];
 	};
 
-	canvas.onmouseup   = function(e) {
+	canvas.onpointerup   = function(e) {
 		MOUSE_DOWN = false;
 		MOUSE_LAST = [
 			e.offsetX - MOUSE_START[0],
@@ -205,7 +205,7 @@ function Render_Init()
 		}
 	};
 
-	canvas.onmousemove = function(e)
+	canvas.onpointermove = function(e)
 	{
 		if(!MOUSE_DOWN) return; // don't pan if mouse is not pressed
 
