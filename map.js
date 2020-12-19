@@ -2,7 +2,7 @@
 let X_POS       = 0;
 let Y_POS       = 0;
 let X_TILESIZE  = 128;
-let Y_TILESIZE  = 64;
+let Y_TILESIZE  = 128;
 let TIME_START  = 0;
 let TIME_LAST   = 0;
 let MOUSE_DOWN  = false;  // whether mouse is pressed
@@ -10,7 +10,6 @@ let MOUSE_START = [];     // 'grab' coordinates when pressing mouse
 let MOUSE_LAST  = [0, 0]; // previous coordinates of mouse release
 let MOUSE_POS_START = [0, 0];
 
-//const COLORS = ['red', 'blue', 'cyan', 'green', 'purple', 'magenta', 'yellow', 'orange', 'teal', 'pink'];
 const COLORS = [
 	"#000022",
 	"#000044",
@@ -20,6 +19,16 @@ const COLORS = [
 	"#1144CC",
 	"#1155EE",
 ]
+const SPR_LEFT = [
+	"1x1-left-bottom.png",
+	"1x1-right-top.png",
+	"1x1-top-left.png"
+];
+const SPR_RIGHT = [
+	"1x1-left-top.png",
+	"1x1-right-bottom.png",
+	"1x1-top-left.png"
+];
 
 const NUM_BG = 1;
 let CANVAS_BG = [];
@@ -64,36 +73,52 @@ function Tiles_MakeRandom(w, h)
 }
 
 // just a generic grid-like thing for now
-function Render_Step_BG(ctx, w, h)
+function Render_BG(ctx, w, h)
 {
 	let x = 0;
-	let y = Math.floor((h / 2) - (Y_TILESIZE / 2));
+	let y = -(Y_TILESIZE / 2);
 	let xi = 0;
 	let yi = 0;
 	ctx.font = '8px monospace';
 
-	const tiles = Tiles_MakeRandom(w / X_TILESIZE, h / Y_TILESIZE);
+	let tiles = Tiles_MakeRandom(
+		(w / X_TILESIZE),
+		(2*h / Y_TILESIZE)
+	);
+	// append first row because graphics
+	tiles.push(tiles[0])
+
 	for (const row of tiles) {
 		for (const tile of row) {
 			ctx.fillStyle = tile;
 
 			// render isometric tile
 			ctx.beginPath();
-			ctx.moveTo(x, y+(Y_TILESIZE / 2));
-			ctx.lineTo(x+(X_TILESIZE/2), y+(Y_TILESIZE));
-			ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
-			ctx.lineTo(x+(X_TILESIZE/2), y);
+			if ((xi % 2) ^ (yi % 2)) {
+				ctx.moveTo(x, y+(Y_TILESIZE / 2));
+				ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
+				ctx.lineTo(x+(X_TILESIZE), y);
+			} else {
+				ctx.moveTo(x, y);
+				ctx.lineTo(x, y+(Y_TILESIZE));
+				ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+			}
 			ctx.closePath();
 			ctx.fill();
+			// render debug text
 			ctx.fillStyle = 'white';
-			ctx.fillText(xi + ',' + yi, x, y);
+			ctx.fillText(
+				xi + ',' + yi,
+				x + (X_TILESIZE / 2),
+				y + (Y_TILESIZE / 2)
+			);
 
-			x += X_TILESIZE / 2;
-			y -= Y_TILESIZE / 2;
+			x += X_TILESIZE;
 			xi += 1;
 		}
-		x = Math.floor(((yi+1) * X_TILESIZE / 2));
-		y += Math.floor((Y_TILESIZE / 2) * (xi + 1));
+		//x = (yi % 2) ? 0 : (-X_TILESIZE / 2);
+		x = 0;
+		y += Y_TILESIZE / 2;
 		xi = 0;
 		yi += 1;
 	}
@@ -110,44 +135,26 @@ function Render_Step(timestamp)
 	if (!canvas.getContext) { return; }
 	const ctx = canvas.getContext('2d', {alpha: false});
 
-	// temporary motion thing
-	//X_POS = Math.cos(time / 2000) * 1024 - 512;
-	//X_POS = 32;
-	//Y_POS = Math.sin(time / 500) * 128;
-	//Y_POS = 32;
-
 	// blit background layer to composite canvas
 	ctx.globalCompositeOperation = 'source-over';
 	ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
 
-	let x_pos = Math.floor(mod(X_POS, CANVAS_BG[0].width));// - (CANVAS_BG[0].width / 2));
-	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG[0].height));// - (CANVAS_BG[0].height / 2));
+	let x_pos = Math.floor(mod(X_POS, CANVAS_BG[0].width));
+	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG[0].height));
 
 	const x_off = [
-		(x_pos + (CANVAS_BG[0].width) / 2),   // top-left
-		(x_pos - (CANVAS_BG[0].width) / 2),   // top-right
-		(x_pos - CANVAS_BG[0].width * 1),         // far-left
-		(x_pos),                              // center
-		(x_pos - CANVAS_BG[0].width),         // far-right
-		(x_pos + (CANVAS_BG[0].width) / 2),   // bottom-left
-		(x_pos - (CANVAS_BG[0].width) / 2),   // bottom-right
-		(x_pos + (CANVAS_BG[0].width) / 2),   // far-bottom-left
-		(x_pos),                              // far-bottom
-		(x_pos - (CANVAS_BG[0].width) / 2),   // far-bottom-right
+		x_pos,
+		x_pos - CANVAS_BG[0].width,
+		x_pos,
+		x_pos - CANVAS_BG[0].width,
 	];
 	const y_off = [
-		(y_pos + (CANVAS_BG[0].height) / 2),   // top-left
-		(y_pos + (CANVAS_BG[0].height) / 2),   // top-right
-		(y_pos - CANVAS_BG[0].height),                               // far-left
-		(y_pos),                               // center
-		(y_pos),                               // far-right
-		(y_pos - (CANVAS_BG[0].height) / 2),   // bottom-left
-		(y_pos - (CANVAS_BG[0].height) / 2),   // bottom-right
-		(y_pos - CANVAS_BG[0].height * 1.5),   // far-bottom-left
-		(y_pos - CANVAS_BG[0].height),         // far-bottom
-		(y_pos - CANVAS_BG[0].height * 1.5)    // far-bottom-right
+		y_pos,
+		y_pos,
+		y_pos - CANVAS_BG[0].height,
+		y_pos - CANVAS_BG[0].height,
 	];
-	const num_off = 10;
+	const num_off = 4;
 
 	for(let i = 0; i < num_off; i += 1) {
 		ctx.drawImage(
@@ -158,8 +165,22 @@ function Render_Step(timestamp)
 		);
 	}
 
-	// print some debug info
+	// print a clipping box
 	ctx.fillStyle = 'black';
+	ctx.fillRect(
+		CANVAS_BG[0].width / 2,
+		0,
+		9999999,
+		9999999
+	);
+	ctx.fillRect(
+		0,
+		CANVAS_BG[0].height / 2,
+		9999999,
+		9999999
+	);
+
+	// print some debug info
 	ctx.fillRect(0, 0, 160, 90);
 	ctx.fillRect(canvas.width - 100, 0, 100, 30);
 	ctx.font = '14px monospace';
@@ -228,7 +249,7 @@ function Render_Init()
 	CANVAS_BG[0] = document.getElementById('bg0');
 	CTX_BG[0] = CANVAS_BG[0].getContext('2d');
 	// draw background layers
-	Render_Step_BG(CTX_BG[0], CANVAS_BG[0].width, CANVAS_BG[0].height);
+	Render_BG(CTX_BG[0], CANVAS_BG[0].width, CANVAS_BG[0].height);
 
 	resize_canvas();
 

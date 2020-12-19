@@ -1,38 +1,49 @@
 'use strict';
-let X_TILESIZE  = 128;
-let Y_TILESIZE  = 128;
+const X_TILESIZE  = 64;
+const Y_TILESIZE  = 64;
+let SPRITES       = {};
 
-// init app
-const app = new PIXI.Application({
-    backgroundColor: 0x1099bb
-});
-document.body.appendChild(app.view);
+function setup()
+{
 
-// auto-resize to fill screen
-app.renderer.view.style.position = "absolute";
-app.renderer.view.style.display = "block";
-app.renderer.autoResize = true;
-app.renderer.resize(window.innerWidth, window.innerHeight);
+}
 
-// define debug font
-const fon_debug = new PIXI.TextStyle({
-    fontFamily: 'Arial',
-    fontSize: 12,
-    fontStyle: 'italic',
-    fontWeight: 'normal',
-    fill: '#fff',
-    stroke: '#000',
-    strokeThickness: 5,
-    lineJoin: 'round'
-});
+function init()
+{
+    // init app
+    const app = new PIXI.Application({
+        backgroundColor: 0x1099bb
+    });
+    document.body.appendChild(app.view);
 
-// now just draw a whole bunch of triangles
-const gfx = new PIXI.Graphics();
-gfx.lineStyle(4, 0xffd900, 1);
+    // auto-resize to fill screen
+    app.renderer.view.style.position = "absolute";
+    app.renderer.view.style.display = "block";
+    app.renderer.autoResize = true;
+    app.renderer.resize(window.innerWidth, window.innerHeight);
+
+    // define debug font
+    const fon_debug = new PIXI.TextStyle({
+        fontFamily: 'Arial',
+        fontSize: 12,
+        fontStyle: 'italic',
+        fontWeight: 'normal',
+        fill: '#fff',
+        stroke: '#000',
+        strokeThickness: 5,
+        lineJoin: 'round'
+    });
+
+    // load spritesheet
+    loader
+        .add("tiles/testassets-tri.json")
+        .load(setup);
+
+}
 
 function Render_Tri(x, y, w, h, flipped)
 {
-    if (flipped == true) {
+    /*if (flipped == true) {
         x += w;
         w = -w;
     }
@@ -40,7 +51,9 @@ function Render_Tri(x, y, w, h, flipped)
     gfx.lineTo(x, y+h);
     gfx.lineTo(x+w, y+(h/2));
     gfx.lineTo(x, y);
-    gfx.closePath();
+    gfx.closePath();*/
+
+
 }
 
 let flipped = false;
