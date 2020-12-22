@@ -57,13 +57,35 @@ function resize_canvas(){
 	canvas.height = canvas.offsetHeight;
 }
 
+// Determine which tile a given mouse coord falls under
+// this is complicated
+function Coord_Lookup(x, y)
+{
+	// determine x
+	let x_out = x / X_TILESIZE;
+	// get a y 
+	let y_out = (y / Y_TILESIZE);
+	// if fractional part of Y > (or <, if odd) fractional part of
+	// X, add one to Y
+	/*let x_frac = x_out - Math.floor(x_out);
+	let y_frac = y_out - Math.floor(y_out);
+
+	if (Math.floor(x_out) % 2 == 0) {
+		if (x_frac <= y_frac) {y_out -= 1;}
+	} else {
+		if (x_frac >= y_frac) {y_out -= 1;}
+	}*/
+
+	return {x: Math.round(x_out), y: Math.round(y_out)};
+}
+
 // get an array of tiles to be rendered onto the screen
 function Tiles_MakeRandom(w, h)
 {
 	let map = [];
-	for(y = 0; y < h; y += 1) {
+	for(let y = 0; y < h; y += 1) {
 		let row = [];
-		for (x = 0; x < w; x += 1) {
+		for (let x = 0; x < w; x += 1) {
 			let color = COLORS.random();
 			row.push(color);
 		}

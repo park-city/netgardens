@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>NetGardens Online</title>
+	<meta name="descripton" content="Showcase your indie website in an interactive landscape. Plant your garden today!" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+	<style>
+		body {
+			font-family: sans-serif;
+			margin: 0;
+			height: 100vh;
+			overflow: hidden;
+		}
+
+		.container {
+			display: flex;
+			align-items: stretch;
+			height: 100%;
+		}
+
+		main {
+			background: white;
+			padding-top: 24pt;
+
+			text-align: center;
+			width: 400px;
+			overflow-y: auto;
+			font-size: 14pt;
+		}
+		main button, main label {
+			font-size: 16pt;
+			width: 20ex;
+			margin: 1ex auto;
+		}
+		main input[type="radio"] {
+			margin-bottom: 1em;
+		}
+
+		.collapsable {
+			position: absolute;
+			display: flex;
+			height: 100%;
+		}
+		#collapsebtn {
+			width: 2ex;
+			background: grey;
+			height: 100%;
+			cursor: pointer;
+		}
+		.collapsable.closed main {
+			display: none;
+		}
+
+		.map {
+			width: 100%;
+		}
+
+		nav {
+			display: flex;
+			flex-wrap: wrap;
+			padding-left: 1em;
+			min-height: 2em;
+			justify-content: flex-end;
+			background: black;
+			color: white;
+		}
+		nav::before {
+			content: "NetGardens Online";
+			margin-right: auto;
+			font-size: 1.3em;
+			padding-top: 0.2em;
+		}
+		nav a {
+			text-decoration: none;
+			display: inline;
+			padding: 1ex;
+			color: lightblue;
+		}
+	</style>
+</head>
+<body>
+	<nav>
+		<a href="#">Browse</a>
+		<a href="#">Help</a>
+		<a href="#">Login</a>
+	</nav>
+
+	<div class="container">
+		<div class="collapsable">
+			<main>
+				<h1>NetGardens Online</h1>
+				<p>Showcase your indie website in an interactive landscape. Plant your garden today!</p>
+				<button type="button">Log In</button>
+				<button type="button">Sign Up</button>
+
+				<p>Or check out one of our parks:</p>
+				<div>
+					<input type="radio" name="parksel" value="central-park" id="central-park" checked>
+					<label for="central-park">Central Park</label>
+				</div>
+				<div>
+					<input type="radio" name="parksel" value="arcade-zone" id="arcade-zone">
+					<label for="arcade-zone">Arcade Zone</label>
+				</div>
+				<div>
+					<input type="radio" name="parksel" value="cyber-space" id="cyber-space">
+					<label for="cyber-space">Cyber Space</label>
+				</div>
+				<div>
+					<input type="radio" name="parksel" value="museum-mile" id="museum-mile">
+					<label for="museum-mile">Museum Mile</label>
+				</div>
+				<div>
+					<input type="radio" name="parksel" value="echo-metro" id="echo-metro">
+					<label for="echo-metro">Echo Metro</label>
+				</div>
+			</main>
+			<div id="collapsebtn"></div>
+		</div>
+
+		<div class="map">
+			<canvas id="mapcanvas"></canvas>
+			<canvas id="bg0" width="4096" height="2048" style="display: none"></canvas>
+		</div>
+	</div>
+</body>
+<!-- javascript stuff -->
+<script src="map.js"></script>
+<script>
+	document.getElementById('collapsebtn').addEventListener(
+		'pointerup', (event) => {
+			console.log(event);
+			event.target.parentElement.classList.toggle("closed");
+		}
+	);
+</script>
+</html>
