@@ -1,8 +1,6 @@
 body {
 	font-family: sans-serif;
 	margin: 0;
-	height: 100vh;
-	overflow: hidden;
 }
 
 .container {
@@ -14,11 +12,8 @@ body {
 main {
 	background: white;
 	padding-top: 24pt;
-
-	text-align: center;
-	width: 400px;
-	overflow-y: auto;
 	font-size: 14pt;
+	overflow-y: auto;
 }
 main button, main label {
 	font-size: 16pt;
@@ -50,9 +45,9 @@ main input[type="radio"] {
 }
 
 nav {
+	width: 100%;
 	box-sizing: border-box;
 	position: absolute;
-	width: 100vw;
 	z-index: 10;
 	display: flex;
 	flex-wrap: wrap;
@@ -73,4 +68,8 @@ nav a {
 	display: inline;
 	padding: 1ex;
 	color: lightblue;
+}
+
+h1 {
+	text-align: center;
 }
