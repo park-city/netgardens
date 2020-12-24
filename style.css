@@ -1,0 +1,76 @@
+body {
+	font-family: sans-serif;
+	margin: 0;
+	height: 100vh;
+	overflow: hidden;
+}
+
+.container {
+	display: flex;
+	align-items: stretch;
+	height: 100%;
+}
+
+main {
+	background: white;
+	padding-top: 24pt;
+
+	text-align: center;
+	width: 400px;
+	overflow-y: auto;
+	font-size: 14pt;
+}
+main button, main label {
+	font-size: 16pt;
+	width: 20ex;
+	margin: 1ex auto;
+}
+main input[type="radio"] {
+	margin-bottom: 1em;
+}
+
+.collapsable {
+	position: absolute;
+	display: flex;
+	height: 100%;
+	max-width: 100vw;
+}
+#collapsebtn {
+	width: 32px;
+	background: grey;
+	height: 100%;
+	cursor: pointer;
+}
+.collapsable.closed main {
+	display: none;
+}
+
+.map {
+	width: 100%;
+}
+
+nav {
+	box-sizing: border-box;
+	position: absolute;
+	width: 100vw;
+	z-index: 10;
+	display: flex;
+	flex-wrap: wrap;
+	padding-left: 1em;
+	min-height: 2em;
+	justify-content: flex-end;
+	background: black;
+	color: white;
+}
+nav::before {
+	content: "NetGardens Online";
+	margin-right: auto;
+	font-size: 1.3em;
+	padding-top: 0.2em;
+}
+nav a {
+	text-decoration: none;
+	display: inline;
+	padding: 1ex;
+	color: lightblue;
+}
