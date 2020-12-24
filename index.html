@@ -42,9 +42,10 @@
 			position: absolute;
 			display: flex;
 			height: 100%;
+			max-width: 100vw;
 		}
 		#collapsebtn {
-			width: 2ex;
+			width: 32px;
 			background: grey;
 			height: 100%;
 			cursor: pointer;
@@ -58,6 +59,10 @@
 		}
 
 		nav {
+			box-sizing: border-box;
+			position: absolute;
+			width: 100vw;
+			z-index: 10;
 			display: flex;
 			flex-wrap: wrap;
 			padding-left: 1em;
@@ -129,9 +134,9 @@
 <!-- javascript stuff -->
 <script src="map.js"></script>
 <script>
+	// collapsable sidebar
 	document.getElementById('collapsebtn').addEventListener(
 		'pointerup', (event) => {
-			console.log(event);
 			event.target.parentElement.classList.toggle("closed");
 		}
 	);
