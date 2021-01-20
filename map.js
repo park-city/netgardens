@@ -90,11 +90,11 @@ function Tiles_MakeRandom(w, h)
 	for(let y = 0; y < h; y += 1) {
 		let row = [];
 		for (let x = 0; x < w; x += 1) {
-			if (x % 2 == 0) {
-				let tile = Object.values(SPR_RIGHT).random();
+			if ((x % 2) ^ (y % 2)) {
+				let tile = Object.values(SPR_LEFT).random();
 				row.push(tile);
 			} else {
-				let tile = Object.values(SPR_LEFT).random();
+				let tile = Object.values(SPR_RIGHT).random();
 				row.push(tile);
 			}
 		}
@@ -160,12 +160,8 @@ function Render_BG_Tile_noimg(ctx, x, y, xi, yi, tile)
 	);*/
 }
 
-function Render_BG_Tile(ctx, x, y, xi, yi, tile) {
-	if ((yi % 2)) {
-		ctx.drawImage(tile, x, y);
-	} else {
-		ctx.drawImage(tile, x-X_TILESIZE, y);
-	}
+function Render_BG_Tile(ctx, x, y, tile) {
+	ctx.drawImage(tile, x, y);
 }
 
 // just a generic grid-like thing for now
@@ -188,12 +184,14 @@ function Render_BG(ctx, w, h)
 
 	for (const row of tiles) {
 		for (const tile of row) {
-			console.log(x, y, tile);
-			if (!tile) {
+			try {
+				if (!tile) {throw true;}
+				Render_BG_Tile(ctx, x, y, tile);
+			} catch (e) {
+				// tile not loaded, render dummy and try again in some time
+				// (don't want to do this every frame)
 				Render_BG_Tile_noimg(ctx, x, y, xi, yi, '#FF00FF');
-				BG_RERENDER = true;
-			} else {
-				Render_BG_Tile(ctx, x, y, xi, yi, tile);
+				setTimeout(() => {BG_RERENDER = true;}, 200);
 			}
 			x += X_TILESIZE;
 			xi += 1;
@@ -293,7 +291,8 @@ function Render_Init()
 	// set canvas size
 	resize_canvas();
 	// start downloading tileset
-	Tiles_CacheGfx().then(() => {BG_RERENDER = true;})
+	Tiles_CacheGfx();//.then(() => {BG_RERENDER = true;})
+	BG_RERENDER = true;
 
 	// primary canvas
 	const canvas = document.getElementById('mapcanvas');
