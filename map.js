@@ -1,8 +1,8 @@
 'use strict';
 let X_POS       = 0;
 let Y_POS       = 0;
-let X_TILESIZE  = 128;
-let Y_TILESIZE  = 128;
+let X_TILESIZE  = 64;
+let Y_TILESIZE  = 64;
 let TIME_START  = 0;
 let TIME_LAST   = 0;
 let MOUSE_DOWN  = false;  // whether mouse is pressed
@@ -19,20 +19,24 @@ const COLORS = [
 	"#1144CC",
 	"#1155EE",
 ]
-const SPR_LEFT = [
-	"1x1-left-bottom.png",
-	"1x1-right-top.png",
-	"1x1-top-left.png"
-];
-const SPR_RIGHT = [
-	"1x1-left-top.png",
-	"1x1-right-bottom.png",
-	"1x1-top-left.png"
-];
+var SPR_LEFT = {
+	"static/tiles/testassets-tri/1x1-left-bottom.png": null,
+	"static/tiles/testassets-tri/1x1-right-top.png": null,
+	"static/tiles/testassets-tri/1x1-top-left.png": null
+};
+var SPR_RIGHT = {
+	"static/tiles/testassets-tri/1x1-left-top.png": null,
+	"static/tiles/testassets-tri/1x1-right-bottom.png": null,
+	"static/tiles/testassets-tri/1x1-top-right.png": null
+};
 
 const NUM_BG = 1;
 let CANVAS_BG = [];
 let CTX_BG = [];
+let BG_RERENDER = false;
+
+const LEFT = 0;
+const RIGHT = 1;
 
 // https://stackoverflow.com/a/24137301
 Array.prototype.random = function () {
@@ -86,17 +90,89 @@ function Tiles_MakeRandom(w, h)
 	for(let y = 0; y < h; y += 1) {
 		let row = [];
 		for (let x = 0; x < w; x += 1) {
-			let color = COLORS.random();
-			row.push(color);
+			if (x % 2 == 0) {
+				let tile = Object.values(SPR_RIGHT).random();
+				row.push(tile);
+			} else {
+				let tile = Object.values(SPR_LEFT).random();
+				row.push(tile);
+			}
 		}
 		map.push(row);
 	}
 	return map;
 }
 
+// cache tile graphics
+// temporary haxx, probably not great
+function Tiles_CacheGfx()
+{
+	let promises = [];
+	for(const src in SPR_LEFT) {
+		let img = new Image();
+		img.src = src;
+		promises.push(
+			img.decode().then(() => {
+				return createImageBitmap(img);
+			}).then((gfx) => {
+				SPR_LEFT[src] = gfx;
+			})
+		);
+	}
+	for(const src in SPR_RIGHT) {
+		let img = new Image();
+		img.src = src;
+		SPR_RIGHT[src] = img.decode();
+		promises.push(
+			img.decode().then(() => {
+				return createImageBitmap(img);
+			}).then((gfx) => {
+				SPR_RIGHT[src] = gfx;
+			})
+		);
+	}
+	return Promise.all(promises);
+}
+
+// todo: this doesn't align with bg properly
+function Render_BG_Tile_noimg(ctx, x, y, xi, yi, tile)
+{
+	// render isometric tile
+	ctx.fillStyle = tile;
+	ctx.beginPath();
+	if ((xi % 2) ^ (yi % 2)) {
+		ctx.moveTo(x, y+(Y_TILESIZE / 2));
+		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
+		ctx.lineTo(x+(X_TILESIZE), y);
+	} else {
+		ctx.moveTo(x, y);
+		ctx.lineTo(x, y+(Y_TILESIZE));
+		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+	}
+	ctx.closePath();
+	ctx.fill();
+	// render debug text
+	/*ctx.fillStyle = 'white';
+	ctx.fillText(
+		xi + ',' + yi,
+		x + (X_TILESIZE / 2),
+		y + (Y_TILESIZE / 2)
+	);*/
+}
+
+function Render_BG_Tile(ctx, x, y, xi, yi, tile) {
+	if ((yi % 2)) {
+		ctx.drawImage(tile, x, y);
+	} else {
+		ctx.drawImage(tile, x-X_TILESIZE, y);
+	}
+}
+
 // just a generic grid-like thing for now
 function Render_BG(ctx, w, h)
 {
+	BG_RERENDER = false;
+
 	let x = 0;
 	let y = -(Y_TILESIZE / 2);
 	let xi = 0;
@@ -112,33 +188,16 @@ function Render_BG(ctx, w, h)
 
 	for (const row of tiles) {
 		for (const tile of row) {
-			ctx.fillStyle = tile;
-
-			// render isometric tile
-			ctx.beginPath();
-			if ((xi % 2) ^ (yi % 2)) {
-				ctx.moveTo(x, y+(Y_TILESIZE / 2));
-				ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
-				ctx.lineTo(x+(X_TILESIZE), y);
+			console.log(x, y, tile);
+			if (!tile) {
+				Render_BG_Tile_noimg(ctx, x, y, xi, yi, '#FF00FF');
+				BG_RERENDER = true;
 			} else {
-				ctx.moveTo(x, y);
-				ctx.lineTo(x, y+(Y_TILESIZE));
-				ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+				Render_BG_Tile(ctx, x, y, xi, yi, tile);
 			}
-			ctx.closePath();
-			ctx.fill();
-			// render debug text
-			ctx.fillStyle = 'white';
-			ctx.fillText(
-				xi + ',' + yi,
-				x + (X_TILESIZE / 2),
-				y + (Y_TILESIZE / 2)
-			);
-
 			x += X_TILESIZE;
 			xi += 1;
 		}
-		//x = (yi % 2) ? 0 : (-X_TILESIZE / 2);
 		x = 0;
 		y += Y_TILESIZE / 2;
 		xi = 0;
@@ -156,6 +215,15 @@ function Render_Step(timestamp)
 	const canvas = document.getElementById('mapcanvas');
 	if (!canvas.getContext) { return; }
 	const ctx = canvas.getContext('2d', {alpha: false});
+
+	// get BG canvas
+	CANVAS_BG[0] = document.getElementById('bg0');
+	CTX_BG[0] = CANVAS_BG[0].getContext('2d');
+
+	if (BG_RERENDER) {
+		// draw background layers
+		Render_BG(CTX_BG[0], CANVAS_BG[0].width, CANVAS_BG[0].height);
+	}
 
 	// blit background layer to composite canvas
 	ctx.globalCompositeOperation = 'source-over';
@@ -222,6 +290,11 @@ function Render_Step(timestamp)
 
 function Render_Init()
 {
+	// set canvas size
+	resize_canvas();
+	// start downloading tileset
+	Tiles_CacheGfx().then(() => {BG_RERENDER = true;})
+
 	// primary canvas
 	const canvas = document.getElementById('mapcanvas');
 	if (!canvas.getContext) { return; }
@@ -236,7 +309,7 @@ function Render_Init()
 		MOUSE_POS_START = [X_POS, Y_POS];
 	};
 
-	canvas.onpointerup   = function(e) {
+	canvas.onpointerup = function(e) {
 		MOUSE_DOWN = false;
 		MOUSE_LAST = [
 			e.offsetX - MOUSE_START[0],
@@ -266,14 +339,6 @@ function Render_Init()
 
 	TIME_START = performance.now();
 	TIME_LAST = TIME_START;
-
-	// get BG canvas
-	CANVAS_BG[0] = document.getElementById('bg0');
-	CTX_BG[0] = CANVAS_BG[0].getContext('2d');
-	// draw background layers
-	Render_BG(CTX_BG[0], CANVAS_BG[0].width, CANVAS_BG[0].height);
-
-	resize_canvas();
 
 	// on each frame
 	window.requestAnimationFrame(Render_Step);

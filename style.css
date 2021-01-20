@@ -26,7 +26,7 @@ main {
 main button, main label {
 	font-size: 16pt;
 	width: 20ex;
-	margin: 1ex auto;
+	margin: 1pt auto;
 }
 main select {
 	margin-bottom: 1em;
