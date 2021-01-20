@@ -10,18 +10,28 @@ body {
 }
 
 main {
-	background: white;
-	padding-top: 24pt;
+	background: url('static/kde-milkyway.jpg');
+	background-repeat: no-repeat;
+	background-size: cover;
+	color: white;
+	text-shadow: 0 0 2pt black;
+	padding: 1em;
 	font-size: 14pt;
 	overflow-y: auto;
+	box-sizing: border-box;
+	top: 1.9em;
+	position: relative;
+	height: calc(100vh - 1.9em);
 }
 main button, main label {
 	font-size: 16pt;
 	width: 20ex;
 	margin: 1ex auto;
 }
-main input[type="radio"] {
+main select {
 	margin-bottom: 1em;
+	font-size: 14pt;
+	width: 22ex;
 }
 
 .collapsable {
@@ -54,8 +64,8 @@ nav {
 	padding-left: 1em;
 	min-height: 2em;
 	justify-content: flex-end;
-	background: black;
-	color: white;
+	background: #FBE0A1;
+	color: black;
 }
 nav::before {
 	content: "NetGardens Online";
@@ -67,7 +77,6 @@ nav a {
 	text-decoration: none;
 	display: inline;
 	padding: 1ex;
-	color: lightblue;
 }
 
 h1 {

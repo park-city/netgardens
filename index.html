@@ -27,32 +27,19 @@
 	<div class="container">
 		<div class="collapsable">
 			<main>
-				<h1>NetGardens Online</h1>
+				<img src="static/logo.svg" style="width: 80%; padding: 1em;" alt="Netgardens Online logo" />
 				<p>Showcase your indie website in an interactive landscape. Plant your garden today!</p>
 				<button type="button">Log In</button>
 				<button type="button">Sign Up</button>
 
 				<p>Or check out one of our parks:</p>
-				<div>
-					<input type="radio" name="parksel" value="central-park" id="central-park" checked>
-					<label for="central-park">Central Park</label>
-				</div>
-				<div>
-					<input type="radio" name="parksel" value="arcade-zone" id="arcade-zone">
-					<label for="arcade-zone">Arcade Zone</label>
-				</div>
-				<div>
-					<input type="radio" name="parksel" value="cyber-space" id="cyber-space">
-					<label for="cyber-space">Cyber Space</label>
-				</div>
-				<div>
-					<input type="radio" name="parksel" value="museum-mile" id="museum-mile">
-					<label for="museum-mile">Museum Mile</label>
-				</div>
-				<div>
-					<input type="radio" name="parksel" value="echo-metro" id="echo-metro">
-					<label for="echo-metro">Echo Metro</label>
-				</div>
+				<select name="parksel">
+					<option value="central-park">Central Park</option>
+					<option value="arcade-zone">Arcade Zone</option>
+					<option value="cyber-space">Cyber Space</option>
+					<option value="museum-mile">Museum Mile</option>
+					<option value="echo-metro">Echo Metro</option>
+				</select>
 			</main>
 			<div id="collapsebtn"></div>
 		</div>
