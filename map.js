@@ -214,6 +214,7 @@ function Render_Step(timestamp)
 
 	if (BG_RERENDER) {
 		// draw background layers
+		ctx.clearRect(0, 0, CANVAS_BG.width, CANVAS_BG.height);
 		Render_BG(CTX_BG);
 	}
 

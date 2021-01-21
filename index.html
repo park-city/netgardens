@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>NetGardens Online</title>
+	<title>Netgardens Online</title>
 	<meta name="descripton" content="Showcase your indie website in an interactive landscape. Plant your garden today!" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="stylesheet" type="text/css" href="style.css" />
@@ -33,7 +33,7 @@
 				<button type="button">Sign Up</button>
 
 				<p>Or check out one of our parks:</p>
-				<select name="parksel">
+				<select id="parksel">
 					<option value="central-park">Central Park</option>
 					<option value="arcade-zone">Arcade Zone</option>
 					<option value="cyber-space">Cyber Space</option>
@@ -53,11 +53,25 @@
 <!-- javascript stuff -->
 <script src="map.js"></script>
 <script>
+	// list of map tilesets (temporary)
+	const TILESETS = {
+		'central-park': 'static/tiles/central-park.png',
+		'arcade-zone': 'static/tiles/testassets-tri.png',
+		'cyber-space': 'static/tiles/testassets-tri.png',
+		'museum-mile': 'static/tiles/testassets-tri.png',
+		'echo-metro': 'static/tiles/testassets-tri.png'
+	}
 	// collapsable sidebar
 	document.getElementById('collapsebtn').addEventListener(
 		'pointerup', (event) => {
 			event.target.parentElement.classList.toggle("closed");
 		}
 	);
+	// map select
+	document.getElementById('parksel').addEventListener(
+		'change', (e) => {
+			Map_Init(TILESETS[e.target.value]);
+		}
+	)
 </script>
 </html>

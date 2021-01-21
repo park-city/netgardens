@@ -68,7 +68,7 @@ nav {
 	color: black;
 }
 nav::before {
-	content: "NetGardens Online";
+	content: "Netgardens Online";
 	margin-right: auto;
 	font-size: 1.3em;
 	padding-top: 0.2em;
