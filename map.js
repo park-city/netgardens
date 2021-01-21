@@ -19,20 +19,13 @@ const COLORS = [
 	"#1144CC",
 	"#1155EE",
 ]
-var SPR_LEFT = {
-	"static/tiles/testassets-tri/1x1-left-bottom.png": null,
-	"static/tiles/testassets-tri/1x1-right-top.png": null,
-	"static/tiles/testassets-tri/1x1-top-left.png": null
-};
-var SPR_RIGHT = {
-	"static/tiles/testassets-tri/1x1-left-top.png": null,
-	"static/tiles/testassets-tri/1x1-right-bottom.png": null,
-	"static/tiles/testassets-tri/1x1-top-right.png": null
-};
+var SPR = [];
+const SPR_URL = "static/tiles/testassets-tri.png"
+var MAP = [];
 
 const NUM_BG = 1;
-let CANVAS_BG = [];
-let CTX_BG = [];
+let CANVAS_BG = null;
+let CTX_BG = null;
 let BG_RERENDER = false;
 
 const LEFT = 0;
@@ -61,6 +54,20 @@ function resize_canvas(){
 	canvas.height = canvas.offsetHeight;
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive).
+ * The value is no lower than min (or the next integer greater than min
+ * if min isn't an integer) and no greater than max (or the next integer
+ * lower than max if max isn't an integer).
+ * Using Math.round() will give you a non-uniform distribution!
+ */
+function getRandomInt(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 // Determine which tile a given mouse coord falls under
 // this is complicated
 function Coord_Lookup(x, y)
@@ -84,19 +91,18 @@ function Coord_Lookup(x, y)
 }
 
 // get an array of tiles to be rendered onto the screen
-function Tiles_MakeRandom(w, h)
+function Map_MakeRandom(w, h)
 {
 	let map = [];
+	const num_tiles = Math.floor(SPR.length / 2) - 1;
 	for(let y = 0; y < h; y += 1) {
 		let row = [];
 		for (let x = 0; x < w; x += 1) {
-			if ((x % 2) ^ (y % 2)) {
-				let tile = Object.values(SPR_LEFT).random();
-				row.push(tile);
-			} else {
-				let tile = Object.values(SPR_RIGHT).random();
-				row.push(tile);
+			let tile = getRandomInt(0, num_tiles) * 2;
+			if (!((x % 2) ^ (y % 2))) {
+				tile += 1;
 			}
+			row.push(tile);
 		}
 		map.push(row);
 	}
@@ -105,40 +111,30 @@ function Tiles_MakeRandom(w, h)
 
 // cache tile graphics
 // temporary haxx, probably not great
-function Tiles_CacheGfx()
+function Map_CacheGfx(url)
 {
-	let promises = [];
-	for(const src in SPR_LEFT) {
-		let img = new Image();
-		img.src = src;
-		promises.push(
-			img.decode().then(() => {
-				return createImageBitmap(img);
-			}).then((gfx) => {
-				SPR_LEFT[src] = gfx;
-			})
-		);
-	}
-	for(const src in SPR_RIGHT) {
-		let img = new Image();
-		img.src = src;
-		SPR_RIGHT[src] = img.decode();
-		promises.push(
-			img.decode().then(() => {
-				return createImageBitmap(img);
-			}).then((gfx) => {
-				SPR_RIGHT[src] = gfx;
-			})
-		);
-	}
-	return Promise.all(promises);
+	let img = new Image();
+	img.src = url;
+	SPR = [];
+	return img.decode().then(() => {
+		let promises = [];
+		for (let y = 0; y < img.height; y += Y_TILESIZE) {
+			for (let x = 0; x < img.width; x += X_TILESIZE) {
+				promises.push(createImageBitmap(img, x, y, X_TILESIZE, Y_TILESIZE));
+			}
+		}
+		return Promise.all(promises);
+	}).then((sprites) => {
+		for (let sprite of sprites) {
+			SPR.push(sprite);
+		}
+	});
 }
 
 // todo: this doesn't align with bg properly
-function Render_BG_Tile_noimg(ctx, x, y, xi, yi, tile)
+function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 {
-	// render isometric tile
-	ctx.fillStyle = tile;
+
 	ctx.beginPath();
 	if ((xi % 2) ^ (yi % 2)) {
 		ctx.moveTo(x, y+(Y_TILESIZE / 2));
@@ -161,13 +157,16 @@ function Render_BG_Tile_noimg(ctx, x, y, xi, yi, tile)
 }
 
 function Render_BG_Tile(ctx, x, y, tile) {
-	ctx.drawImage(tile, x, y);
+	ctx.drawImage(SPR[tile], x, y);
 }
 
 // just a generic grid-like thing for now
-function Render_BG(ctx, w, h)
+function Render_BG(ctx)
 {
 	BG_RERENDER = false;
+	// set no-tile colors
+	ctx.fillStyle = "#B0E0E6";
+	ctx.strokeStyle = "#FFFFFF";
 
 	let x = 0;
 	let y = -(Y_TILESIZE / 2);
@@ -175,22 +174,18 @@ function Render_BG(ctx, w, h)
 	let yi = 0;
 	ctx.font = '8px monospace';
 
-	let tiles = Tiles_MakeRandom(
-		(w / X_TILESIZE),
-		(2*h / Y_TILESIZE)
-	);
 	// append first row because graphics
+	let tiles = MAP;
 	tiles.push(tiles[0])
 
 	for (const row of tiles) {
 		for (const tile of row) {
 			try {
-				if (!tile) {throw true;}
 				Render_BG_Tile(ctx, x, y, tile);
 			} catch (e) {
 				// tile not loaded, render dummy and try again in some time
 				// (don't want to do this every frame)
-				Render_BG_Tile_noimg(ctx, x, y, xi, yi, '#FF00FF');
+				Render_BG_Tile_noimg(ctx, x, y, xi, yi);
 				setTimeout(() => {BG_RERENDER = true;}, 200);
 			}
 			x += X_TILESIZE;
@@ -214,39 +209,35 @@ function Render_Step(timestamp)
 	if (!canvas.getContext) { return; }
 	const ctx = canvas.getContext('2d', {alpha: false});
 
-	// get BG canvas
-	CANVAS_BG[0] = document.getElementById('bg0');
-	CTX_BG[0] = CANVAS_BG[0].getContext('2d');
-
 	if (BG_RERENDER) {
 		// draw background layers
-		Render_BG(CTX_BG[0], CANVAS_BG[0].width, CANVAS_BG[0].height);
+		Render_BG(CTX_BG);
 	}
 
 	// blit background layer to composite canvas
 	ctx.globalCompositeOperation = 'source-over';
-	ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
+	//ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
 
-	let x_pos = Math.floor(mod(X_POS, CANVAS_BG[0].width));
-	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG[0].height));
+	let x_pos = Math.floor(mod(X_POS, CANVAS_BG.width));
+	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG.height));
 
 	const x_off = [
 		x_pos,
-		x_pos - CANVAS_BG[0].width,
+		x_pos - CANVAS_BG.width,
 		x_pos,
-		x_pos - CANVAS_BG[0].width,
+		x_pos - CANVAS_BG.width,
 	];
 	const y_off = [
 		y_pos,
 		y_pos,
-		y_pos - CANVAS_BG[0].height,
-		y_pos - CANVAS_BG[0].height,
+		y_pos - CANVAS_BG.height,
+		y_pos - CANVAS_BG.height,
 	];
 	const num_off = 4;
 
 	for(let i = 0; i < num_off; i += 1) {
 		ctx.drawImage(
-			CANVAS_BG[0],
+			CANVAS_BG,
 			x_off[i], y_off[i],                    // src x, y
 			canvas.width, canvas.height,           // src w, h
 			0, 0, canvas.width, canvas.height      // dst x, y, w, h
@@ -256,14 +247,14 @@ function Render_Step(timestamp)
 	// print a clipping box
 	ctx.fillStyle = 'black';
 	ctx.fillRect(
-		CANVAS_BG[0].width / 2,
+		CANVAS_BG.width / 2,
 		0,
 		9999999,
 		9999999
 	);
 	ctx.fillRect(
 		0,
-		CANVAS_BG[0].height / 2,
+		CANVAS_BG.height / 2,
 		9999999,
 		9999999
 	);
@@ -286,13 +277,29 @@ function Render_Step(timestamp)
 	window.requestAnimationFrame(Render_Step);
 }
 
+function Map_Init(tileset_url)
+{
+	Map_CacheGfx(tileset_url).then(() => {
+		MAP = Map_MakeRandom(
+			(CANVAS_BG.width / X_TILESIZE),
+			(CANVAS_BG.height*2 / Y_TILESIZE)
+		);
+	}).then(() => {
+		BG_RERENDER = true;
+		X_POS = 0;
+		Y_POS = 0;
+	});
+}
+
 function Render_Init()
 {
-	// set canvas size
+	// get BG canvas
+	CANVAS_BG = document.getElementById('bg0');
+	CTX_BG = CANVAS_BG.getContext('2d');
+	// set display canvas size
 	resize_canvas();
-	// start downloading tileset
-	Tiles_CacheGfx();//.then(() => {BG_RERENDER = true;})
-	BG_RERENDER = true;
+	// load map/graphics data
+	Map_Init(SPR_URL);
 
 	// primary canvas
 	const canvas = document.getElementById('mapcanvas');
