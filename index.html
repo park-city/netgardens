@@ -15,13 +15,33 @@
 			text-align: center;
 			width: 400px;
 		}
+		#comingsoon {
+			color: #FFFF00;
+			font-size: 24pt;
+			text-shadow: 3px 3px #3F3F00;
+			animation: pop 0.58s infinite;
+		}
+		@keyframes pop {
+			from {
+			transform:scale(0.95)
+			}
+			50% {
+			transform:scale(1)
+			}
+			to {
+			transform:scale(0.95)
+			}
+		}
 	</style>
 </head>
 <body>
 	<nav>
+		<!--
 		<a href="#">Browse</a>
 		<a href="#">Help</a>
 		<a href="#">Login</a>
+		-->
+		<a href="https://park-city.club"><img src="static/parkcity.png" alt="Part of the Park City Network" height="18px" /></a>
 	</nav>
 
 	<div class="container">
@@ -29,8 +49,10 @@
 			<main>
 				<img src="static/logo.svg" style="width: 80%; padding: 1em;" alt="Netgardens Online logo" />
 				<p>Showcase your indie website in an interactive landscape. Plant your garden today!</p>
-				<button type="button">Log In</button>
-				<button type="button">Sign Up</button>
+				<!--<button type="button">Log In</button>
+				<button type="button">Sign Up</button>-->
+				<p id="comingsoon">Coming Eventually!</p>
+
 
 				<p>Or check out one of our parks:</p>
 				<select id="parksel">
@@ -40,6 +62,8 @@
 					<option value="museum-mile">Museum Mile</option>
 					<option value="echo-metro">Echo Metro</option>
 				</select>
+
+				<p><a href="https://modarchive.org/index.php?request=view_player&query=32912" target="_blank">Or jam to some appropriate music</a></p>
 			</main>
 			<div id="collapsebtn"></div>
 		</div>

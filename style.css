@@ -19,9 +19,9 @@ main {
 	font-size: 14pt;
 	overflow-y: auto;
 	box-sizing: border-box;
-	top: 1.9em;
+	top: 1.7em; /* why? idk lol */
 	position: relative;
-	height: calc(100vh - 1.9em);
+	height: calc(100vh - 1.7em);
 }
 main button, main label {
 	font-size: 16pt;
@@ -32,6 +32,9 @@ main select {
 	margin-bottom: 1em;
 	font-size: 14pt;
 	width: 22ex;
+}
+main a {
+	color: lightskyblue !important;
 }
 
 .collapsable {
@@ -62,7 +65,7 @@ nav {
 	display: flex;
 	flex-wrap: wrap;
 	padding-left: 1em;
-	min-height: 2em;
+	height: 2em;
 	justify-content: flex-end;
 	background: #FBE0A1;
 	color: black;
@@ -77,8 +80,4 @@ nav a {
 	text-decoration: none;
 	display: inline;
 	padding: 1ex;
-}
-
-h1 {
-	text-align: center;
 }

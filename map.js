@@ -1,4 +1,21 @@
 'use strict';
+/*
+    This file is part of Netgardens Online.
+
+    Netgardens Online is free software: you can redistribute it and/or
+    modify it under the terms of the GNU Affero General Public License
+    as published by the Free Software Foundation, either version 3 of
+    the License, or (at your option) any later version.
+
+    Foobar is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public
+    License along with Netgardens Online.
+    If not, see <https://www.gnu.org/licenses/>.
+*/
 let X_POS       = 0;
 let Y_POS       = 0;
 let X_TILESIZE  = 64;
@@ -94,6 +111,7 @@ function Coord_Lookup(x, y)
 }
 
 // get an array of tiles to be rendered onto the screen
+// this is a big temporary hack
 function Map_MakeRandom(w, h)
 {
 	let map = [];
@@ -103,7 +121,11 @@ function Map_MakeRandom(w, h)
 		let row = [];
 		tile = getRandomInt(0, num_tiles) * 2;
 		for (let x = 0; x < w; x += 1) {
-			if (!((x % 2) ^ (y % 2))) {
+			if ((x == w-1) && ((y % 2) == 0)) {
+				// match tile edges to be seamless
+				// (not needed for finite maps)
+				tile = row[0]-1;
+			} else if (!((x % 2) ^ (y % 2))) {
 				tile += 1;
 				if (tile >= SPR.length) { tile = 0; }
 			} else {
@@ -180,9 +202,11 @@ function Render_BG(ctx)
 	let yi = 0;
 	ctx.font = '8px monospace';
 
-	// append first row because graphics
+	// append first few rows again because graphics
 	let tiles = MAP;
-	tiles.push(tiles[0])
+	tiles.push(tiles[0]);
+	tiles.push(tiles[1]);
+	tiles.push(tiles[2]);
 
 	for (const row of tiles) {
 		for (const tile of row) {
@@ -284,7 +308,7 @@ function Render_Step(timestamp)
 	);
 
 	// print some debug info
-	ctx.fillRect(0, 0, 160, 90);
+	/*ctx.fillRect(0, 0, 160, 90);
 	ctx.fillRect(canvas.width - 100, 0, 100, 30);
 	ctx.font = '14px monospace';
 	ctx.fillStyle = 'white';
@@ -295,7 +319,7 @@ function Render_Step(timestamp)
 	
 	// print fps too
 	let fps = Math.round(1/((timestamp - TIME_LAST) / 1000));
-	ctx.fillText("FPS: " + fps, canvas.width - 80, 20);
+	ctx.fillText("FPS: " + fps, canvas.width - 80, 20);*/
 
 	TIME_LAST = timestamp;
 	window.requestAnimationFrame(Render_Step);
