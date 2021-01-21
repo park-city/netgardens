@@ -9,6 +9,9 @@ let MOUSE_DOWN  = false;  // whether mouse is pressed
 let MOUSE_START = [];     // 'grab' coordinates when pressing mouse
 let MOUSE_LAST  = [0, 0]; // previous coordinates of mouse release
 let MOUSE_POS_START = [0, 0];
+let AUTOSCROLL  = false;
+let AUTOSCROLL_DX = 0;
+let AUTOSCROLL_DY = 0;
 
 const COLORS = [
 	"#000022",
@@ -201,11 +204,28 @@ function Render_BG(ctx)
 	}
 }
 
+function Map_DoAutoScroll()
+{
+	if (AUTOSCROLL == false) { return; }
+	X_POS += AUTOSCROLL_DX;
+	Y_POS += AUTOSCROLL_DY;
+}
+
+function Map_SetAutoScroll(dx, dy)
+{
+	AUTOSCROLL = true;
+	AUTOSCROLL_DX = dx;
+	AUTOSCROLL_DY = dy;
+}
+
 // thing to do every frame
 function Render_Step(timestamp)
 {
 	// timestamp
 	let time = timestamp - TIME_START;
+
+	// autoscroll
+	Map_DoAutoScroll();
 
 	// primary canvas
 	const canvas = document.getElementById('mapcanvas');
@@ -317,6 +337,7 @@ function Render_Init()
 			e.offsetY
 		];
 		MOUSE_POS_START = [X_POS, Y_POS];
+		AUTOSCROLL = false;
 	};
 
 	canvas.onpointerup = function(e) {
