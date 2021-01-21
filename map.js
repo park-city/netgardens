@@ -2,7 +2,7 @@
 let X_POS       = 0;
 let Y_POS       = 0;
 let X_TILESIZE  = 64;
-let Y_TILESIZE  = 64;
+let Y_TILESIZE  = 64;     // tile gfx is twice this height
 let TIME_START  = 0;
 let TIME_LAST   = 0;
 let MOUSE_DOWN  = false;  // whether mouse is pressed
@@ -20,7 +20,7 @@ const COLORS = [
 	"#1155EE",
 ]
 var SPR = [];
-const SPR_URL = "static/tiles/testassets-tri.png"
+const SPR_URL = "static/tiles/central-park.png"
 var MAP = [];
 
 const NUM_BG = 1;
@@ -95,12 +95,16 @@ function Map_MakeRandom(w, h)
 {
 	let map = [];
 	const num_tiles = Math.floor(SPR.length / 2) - 1;
+	let tile = 0;
 	for(let y = 0; y < h; y += 1) {
 		let row = [];
+		tile = getRandomInt(0, num_tiles) * 2;
 		for (let x = 0; x < w; x += 1) {
-			let tile = getRandomInt(0, num_tiles) * 2;
 			if (!((x % 2) ^ (y % 2))) {
 				tile += 1;
+				if (tile >= SPR.length) { tile = 0; }
+			} else {
+				tile = getRandomInt(0, num_tiles) * 2;
 			}
 			row.push(tile);
 		}
@@ -118,9 +122,9 @@ function Map_CacheGfx(url)
 	SPR = [];
 	return img.decode().then(() => {
 		let promises = [];
-		for (let y = 0; y < img.height; y += Y_TILESIZE) {
+		for (let y = 0; y < img.height; y += Y_TILESIZE*2) {
 			for (let x = 0; x < img.width; x += X_TILESIZE) {
-				promises.push(createImageBitmap(img, x, y, X_TILESIZE, Y_TILESIZE));
+				promises.push(createImageBitmap(img, x, y, X_TILESIZE, Y_TILESIZE*2));
 			}
 		}
 		return Promise.all(promises);
@@ -134,7 +138,6 @@ function Map_CacheGfx(url)
 // todo: this doesn't align with bg properly
 function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 {
-
 	ctx.beginPath();
 	if ((xi % 2) ^ (yi % 2)) {
 		ctx.moveTo(x, y+(Y_TILESIZE / 2));
@@ -169,7 +172,7 @@ function Render_BG(ctx)
 	ctx.strokeStyle = "#FFFFFF";
 
 	let x = 0;
-	let y = -(Y_TILESIZE / 2);
+	let y = -Y_TILESIZE*1.5;
 	let xi = 0;
 	let yi = 0;
 	ctx.font = '8px monospace';
