@@ -40,7 +40,6 @@ const COLORS = [
 	"#1155EE",
 ]
 var SPR = [];
-const SPR_URL = "static/tiles/central-park.png"
 var MAP = [];
 
 const NUM_BG = 1;
@@ -94,7 +93,7 @@ function Coord_Lookup(x, y)
 {
 	// determine x
 	let x_out = x / X_TILESIZE;
-	// get a y 
+	// get a y
 	let y_out = (y / Y_TILESIZE);
 	// if fractional part of Y > (or <, if odd) fractional part of
 	// X, add one to Y
@@ -136,6 +135,37 @@ function Map_MakeRandom(w, h)
 		map.push(row);
 	}
 	return map;
+}
+
+async function Map_LoadFromCSV(url)
+{
+	return d3.text(url)
+	.then((raw) => {
+		return d3.csvParseRows(raw);
+	}).then((data) => {
+		// temporary haxx to convert from per-tile to per-tri
+		data = data.map((row,y,a) => {
+			let newrow = [];
+			for(let i = 0; i < row.length; i += 1) {
+				if (y % 2) {
+					// a normal row
+					newrow.push(row[i] * 2);
+					newrow.push((row[i] * 2)+1);
+				} else {
+					// an offset row
+					newrow.push((row[i] * 2)+1);
+					// handle end-of-row case
+					if (i+1 >= row.length) {
+						newrow.push(row[0] * 2);
+					} else {
+						newrow.push(row[i+1] * 2);
+					}
+				}
+			}
+			return newrow;
+		});
+		return data;
+	});
 }
 
 // cache tile graphics
@@ -316,7 +346,7 @@ function Render_Step(timestamp)
 	ctx.fillText('X % width:  ' + x_pos, 10, 40);
 	ctx.fillText('Y:          ' + Y_POS, 10, 60);
 	ctx.fillText('Y % height: ' + y_pos, 10, 80);
-	
+
 	// print fps too
 	let fps = Math.round(1/((timestamp - TIME_LAST) / 1000));
 	ctx.fillText("FPS: " + fps, canvas.width - 80, 20);*/
@@ -325,14 +355,12 @@ function Render_Step(timestamp)
 	window.requestAnimationFrame(Render_Step);
 }
 
-function Map_Init(tileset_url)
+function Map_Init(tileset_url, tilemap_url)
 {
-	Map_CacheGfx(tileset_url).then(() => {
-		MAP = Map_MakeRandom(
-			(CANVAS_BG.width / X_TILESIZE),
-			(CANVAS_BG.height*2 / Y_TILESIZE)
-		);
-	}).then(() => {
+	Map_CacheGfx(tileset_url)
+	.then(() => {return Map_LoadFromCSV(tilemap_url);})
+	.then((map) => {
+		MAP = map;
 		BG_RERENDER = true;
 		X_POS = 0;
 		Y_POS = 0;
@@ -347,7 +375,7 @@ function Render_Init()
 	// set display canvas size
 	resize_canvas();
 	// load map/graphics data
-	Map_Init(SPR_URL);
+	//Map_Init(SPR_URL);
 
 	// primary canvas
 	const canvas = document.getElementById('mapcanvas');
@@ -399,4 +427,4 @@ function Render_Init()
 	window.requestAnimationFrame(Render_Step);
 }
 
-Render_Init();
+document.addEventListener("DOMContentLoaded", (event) => Render_Init());

@@ -75,15 +75,24 @@
 	</div>
 </body>
 <!-- javascript stuff -->
+<script src="https://d3js.org/d3-dsv.v2.min.js"></script>
+<script src="https://d3js.org/d3-fetch.v2.min.js"></script>
 <script src="map.js"></script>
 <script>
 	// list of map tilesets (temporary)
 	const TILESETS = {
 		'central-park': 'static/tiles/central-park.png',
-		'arcade-zone': 'static/tiles/testassets-tri.png',
-		'cyber-space': 'static/tiles/testassets-tri.png',
-		'museum-mile': 'static/tiles/testassets-tri.png',
-		'echo-metro': 'static/tiles/testassets-tri.png'
+		'arcade-zone':  'static/tiles/testassets-tri.png',
+		'cyber-space':  'static/tiles/testassets-tri.png',
+		'museum-mile':  'static/tiles/testassets-tri.png',
+		'echo-metro':   'static/tiles/testassets-tri.png'
+	}
+	const TILEMAPS = {
+		'central-park': 'static/maps/testmap1.csv',
+		'arcade-zone':  'static/maps/testmap1.csv',
+		'cyber-space':  'static/maps/testmap1.csv',
+		'museum-mile':  'static/maps/testmap1.csv',
+		'echo-metro':   'static/maps/testmap1.csv',
 	}
 	// collapsable sidebar
 	document.getElementById('collapsebtn').addEventListener(
@@ -94,10 +103,13 @@
 	// map select
 	document.getElementById('parksel').addEventListener(
 		'change', (e) => {
-			Map_Init(TILESETS[e.target.value]);
+			Map_Init(TILESETS[e.target.value], TILEMAPS[e.target.value]);
 		}
 	)
 	// autoscroll
-	Map_SetAutoScroll(0.5, 0.5);
+	document.addEventListener("DOMContentLoaded", (event) => {
+		Map_Init(TILESETS['central-park'], TILEMAPS['central-park']);
+		Map_SetAutoScroll(0.5, 0.5);
+	});
 </script>
 </html>
