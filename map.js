@@ -33,6 +33,8 @@ let AUTOSCROLL_DY = 0;
 let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
+let INFO_ID = "";
+let INFO_DEFAULT_ID = "";
 
 const COLORS = [
 	"#000022",
@@ -422,6 +424,7 @@ function Render_Step(timestamp)
 	window.requestAnimationFrame(Render_Step);
 }
 
+// Load map data
 function Map_Init(tileset_url, tilemap_url)
 {
 	Map_CacheGfx(tileset_url)
@@ -432,6 +435,31 @@ function Map_Init(tileset_url, tilemap_url)
 		X_POS = 0;
 		Y_POS = 0;
 	});
+}
+
+// Record where the info panel goes
+function Info_SetID(default_id, info_id)
+{
+	INFO_DEFAULT_ID = default_id;
+	INFO_ID = info_id;
+}
+
+// Populate an info panel
+function Info_Show()
+{
+	document.getElementById(INFO_DEFAULT_ID).classList.add("hidden");
+	let infopanel = document.getElementById(INFO_ID);
+	infopanel.classList.remove("hidden");
+
+	// populate some crap
+	document.getElementById("info_coords").innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
+}
+
+// Hide the info panel
+function Info_Hide()
+{
+	document.getElementById(INFO_DEFAULT_ID).classList.remove("hidden");
+	document.getElementById(INFO_ID).classList.add("hidden");
 }
 
 function Render_Init()
@@ -466,10 +494,8 @@ function Render_Init()
 			e.offsetY - MOUSE_START[1]
 		];
 		// if total movement less than 8 pixels
-		if (Math.abs(MOUSE_LAST[0]) + Math.abs(MOUSE_LAST[1]) < 8) {
-			//console.log("Click!");
+		if (Math.abs(MOUSE_LAST[0]) + Math.abs(MOUSE_LAST[1]) < 16) {
 			let seltile = Coord_Lookup(MOUSE_START[0], MOUSE_START[1]);
-			//console.log(seltile);
 
 			if (SEL_XTILE == seltile.x && SEL_YTILE == seltile.y) {
 				// hide if we click on it again
@@ -480,6 +506,8 @@ function Render_Init()
 				SEL_VISIBLE = true;
 			}
 
+			if (INFO_ID && !SEL_VISIBLE) { Info_Hide(); }
+			else if (INFO_ID && SEL_VISIBLE) { Info_Show(); }
 		}
 	};
 

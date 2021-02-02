@@ -46,7 +46,7 @@
 
 	<div class="container">
 		<div class="collapsable">
-			<main>
+			<main id="main_default">
 				<img src="static/logo.svg" style="width: 80%; padding: 1em;" alt="Netgardens Online logo" />
 				<p>Showcase your indie website in an interactive landscape. Plant your garden today!</p>
 				<!--<button type="button">Log In</button>
@@ -64,6 +64,10 @@
 				</select>
 
 				<p><a href="https://modarchive.org/index.php?request=view_player&query=32912" target="_blank">Or jam to some appropriate music</a></p>
+			</main>
+			<main id="main_info" class="hidden">
+				<h1>Empty Plot</h1>
+				<b>Coords:</b> <span id="info_coords">(0, 0)</span><br />
 			</main>
 			<div id="collapsebtn"></div>
 		</div>
@@ -110,6 +114,7 @@
 	document.addEventListener("DOMContentLoaded", (event) => {
 		Map_Init(TILESETS['central-park'], TILEMAPS['central-park']);
 		Map_SetAutoScroll(0.5, 0.5);
+		Info_SetID("main_default", "main_info");
 	});
 </script>
 </html>
