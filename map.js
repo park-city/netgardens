@@ -47,6 +47,7 @@ const COLORS = [
 ]
 var SPR = [];
 var MAP = [];
+var GARDENS = [];
 
 const NUM_BG = 1;
 let CANVAS_BG = null;
@@ -174,6 +175,11 @@ function Map_MakeRandom(w, h)
 	return map;
 }
 
+async function Garden_LoadFromJSON(url)
+{
+	return d3.json(url);
+}
+
 async function Map_LoadFromCSV(url)
 {
 	return d3.text(url)
@@ -225,6 +231,34 @@ function Map_CacheGfx(url)
 			SPR.push(sprite);
 		}
 	});
+}
+
+function Render_FG_Gardens(ctx)
+{
+	for (let garden of GARDENS) {
+		let xi = Math.floor(garden.x / 2) * 2;
+		let yi = garden.y;
+		let x = -X_POS + xi*X_TILESIZE;
+		let y = -Y_POS + yi*Y_TILESIZE/2;
+
+		// set no-tile colors
+		ctx.fillStyle = garden.color;
+		
+		ctx.beginPath();
+		if ((yi % 2)) {
+			ctx.moveTo(x, y);
+			ctx.lineTo(x-(X_TILESIZE), y+(Y_TILESIZE/2));
+			ctx.lineTo(x, y+(Y_TILESIZE));
+			ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+		} else {
+			ctx.moveTo(x, y+(Y_TILESIZE / 2));
+			ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
+			ctx.lineTo(x+(X_TILESIZE*2), y+(Y_TILESIZE/2))
+			ctx.lineTo(x+(X_TILESIZE), y);
+		}
+		ctx.closePath();
+		ctx.fill();
+	}
 }
 
 function Render_FG_Sel(ctx)
@@ -401,6 +435,9 @@ function Render_Step(timestamp)
 		9999999
 	);
 
+	// Render all visible gardens
+	Render_FG_Gardens(ctx);
+
 	// print current selection
 	if (SEL_VISIBLE) {
 		Render_FG_Sel(ctx);
@@ -425,16 +462,31 @@ function Render_Step(timestamp)
 }
 
 // Load map data
-function Map_Init(tileset_url, tilemap_url)
+function Map_Init(tileset_url, tilemap_url, gardenset_url)
 {
 	Map_CacheGfx(tileset_url)
-	.then(() => {return Map_LoadFromCSV(tilemap_url);})
+	.then(() => {
+		return Garden_LoadFromJSON(gardenset_url);
+	})
+	.then((gardens) => {
+		GARDENS = gardens;
+		return Map_LoadFromCSV(tilemap_url);
+	})
 	.then((map) => {
 		MAP = map;
 		BG_RERENDER = true;
 		X_POS = 0;
 		Y_POS = 0;
 	});
+}
+
+function Garden_GetAtTile(x, y)
+{
+	for(let garden of GARDENS) {
+		if (garden.x == x && garden.y == y) { return garden; }
+		if (garden.x == (x-1) && garden.y == y) { return garden; }
+	}
+	return null;
 }
 
 // Record where the info panel goes
@@ -451,8 +503,21 @@ function Info_Show()
 	let infopanel = document.getElementById(INFO_ID);
 	infopanel.classList.remove("hidden");
 
-	// populate some crap
+	// List coords
 	document.getElementById("info_coords").innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
+
+	// Find the garden at the plot
+	let garden = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
+	if (!garden) {
+		document.getElementById("info_name").innerText = "Empty Plot";
+		document.getElementById("info_url").innerText = "Click to claim!";
+		document.getElementById("info_url").href = "#";
+
+	} else {
+		document.getElementById("info_name").innerText = garden.name;
+		document.getElementById("info_url").innerText = garden.url;
+		document.getElementById("info_url").href = garden.url;
+	}
 }
 
 // Hide the info panel
