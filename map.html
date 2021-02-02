@@ -50,5 +50,15 @@
 	</body>
 
 
-	<script type="text/javascript" src="map.js"></script>
+	<script src="https://d3js.org/d3-dsv.v2.min.js"></script>
+	<script src="https://d3js.org/d3-fetch.v2.min.js"></script>
+	<script src="map.js"></script>
+	<script>
+	document.addEventListener("DOMContentLoaded", (event) => {
+		Map_Init(
+			'static/tiles/central-park.png',
+			'static/maps/testmap1.csv'
+		);
+	});
+	</script>
 </html>

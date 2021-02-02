@@ -20,6 +20,7 @@ let X_POS       = 0;
 let Y_POS       = 0;
 let X_TILESIZE  = 64;
 let Y_TILESIZE  = 64;     // tile gfx is twice this height
+let SCALE       = 1;
 let TIME_START  = 0;
 let TIME_LAST   = 0;
 let MOUSE_DOWN  = false;  // whether mouse is pressed
@@ -29,6 +30,9 @@ let MOUSE_POS_START = [0, 0];
 let AUTOSCROLL  = false;
 let AUTOSCROLL_DX = 0;
 let AUTOSCROLL_DY = 0;
+let SEL_XTILE = 8;
+let SEL_YTILE = 4;
+let SEL_VISIBLE = false;
 
 const COLORS = [
 	"#000022",
@@ -91,22 +95,53 @@ function getRandomInt(min, max) {
 // this is complicated
 function Coord_Lookup(x, y)
 {
+	x += X_POS;
+	y += Y_POS;
 	// determine x
-	let x_out = x / X_TILESIZE;
+	let x_out = (x / X_TILESIZE);
 	// get a y
-	let y_out = (y / Y_TILESIZE);
+	let y_out = (y / (Y_TILESIZE / 2));
+
 	// if fractional part of Y > (or <, if odd) fractional part of
 	// X, add one to Y
-	/*let x_frac = x_out - Math.floor(x_out);
-	let y_frac = y_out - Math.floor(y_out);
+	let x_frac = Math.abs(x_out - Math.trunc(x_out));
+	let y_frac = Math.abs(y_out - Math.trunc(y_out));
+	if (y_out < 0) {y_frac = (1 - y_frac);}
+	if (x_out < 0) {x_frac = (1 - x_frac);}
 
-	if (Math.floor(x_out) % 2 == 0) {
-		if (x_frac <= y_frac) {y_out -= 1;}
+	let is_left = (
+		(Math.abs(Math.floor(x_out)) % 2) ^
+		(Math.abs(Math.floor(y_out)) % 2)
+	);
+
+	//console.log ("x: ", x_out, "y: ", y_out);
+	if (is_left) {
+		//console.log("\\")
+		//console.log(x_frac, y_frac);
+		if (x_frac <= y_frac) {
+			//console.log("inside");
+		} else {
+			y_out -= 1;
+			//console.log("outside");
+		}
 	} else {
-		if (x_frac >= y_frac) {y_out -= 1;}
-	}*/
+		//console.log ("/")
+		//console.log(x_frac, y_frac);
+		if (x_frac >= (1-y_frac)) {
+			//console.log("inside");
+		} else {
+			y_out -= 1;
+			//console.log("outside");
+		}
+	}
 
-	return {x: Math.round(x_out), y: Math.round(y_out)};
+
+	x_out = Math.floor(x_out);
+	y_out = Math.floor(y_out);
+	let row_is_offset = Math.floor(y_out % 2) != 0;
+	if (row_is_offset) {x_out += 1;}
+
+	return {x: x_out, y: y_out};
 }
 
 // get an array of tiles to be rendered onto the screen
@@ -190,6 +225,33 @@ function Map_CacheGfx(url)
 	});
 }
 
+function Render_FG_Sel(ctx)
+{
+	let xi = Math.floor(SEL_XTILE / 2) * 2;
+	let yi = SEL_YTILE;
+	let x = -X_POS + xi*X_TILESIZE;
+	let y = -Y_POS + yi*Y_TILESIZE/2;
+
+	// set no-tile colors
+	ctx.strokeStyle = "#000000";
+	ctx.lineWidth = 5;
+	
+	ctx.beginPath();
+	if ((yi % 2)) {
+		ctx.moveTo(x, y);
+		ctx.lineTo(x-(X_TILESIZE), y+(Y_TILESIZE/2));
+		ctx.lineTo(x, y+(Y_TILESIZE));
+		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+	} else {
+		ctx.moveTo(x, y+(Y_TILESIZE / 2));
+		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
+		ctx.lineTo(x+(X_TILESIZE*2), y+(Y_TILESIZE/2))
+		ctx.lineTo(x+(X_TILESIZE), y);
+	}
+	ctx.closePath();
+	ctx.stroke();
+}
+
 // todo: this doesn't align with bg properly
 function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 {
@@ -215,7 +277,7 @@ function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 }
 
 function Render_BG_Tile(ctx, x, y, tile) {
-	ctx.drawImage(SPR[tile], x, y);
+	ctx.drawImage(SPR[tile], x, y, X_TILESIZE*SCALE, 2*Y_TILESIZE*SCALE);
 }
 
 // just a generic grid-like thing for now
@@ -248,11 +310,11 @@ function Render_BG(ctx)
 				Render_BG_Tile_noimg(ctx, x, y, xi, yi);
 				setTimeout(() => {BG_RERENDER = true;}, 200);
 			}
-			x += X_TILESIZE;
+			x += X_TILESIZE*SCALE;
 			xi += 1;
 		}
 		x = 0;
-		y += Y_TILESIZE / 2;
+		y += (Y_TILESIZE / 2)*SCALE;
 		xi = 0;
 		yi += 1;
 	}
@@ -337,6 +399,11 @@ function Render_Step(timestamp)
 		9999999
 	);
 
+	// print current selection
+	if (SEL_VISIBLE) {
+		Render_FG_Sel(ctx);
+	}
+
 	// print some debug info
 	/*ctx.fillRect(0, 0, 160, 90);
 	ctx.fillRect(canvas.width - 100, 0, 100, 30);
@@ -400,7 +467,19 @@ function Render_Init()
 		];
 		// if total movement less than 8 pixels
 		if (Math.abs(MOUSE_LAST[0]) + Math.abs(MOUSE_LAST[1]) < 8) {
-			console.log("Click!");
+			//console.log("Click!");
+			let seltile = Coord_Lookup(MOUSE_START[0], MOUSE_START[1]);
+			//console.log(seltile);
+
+			if (SEL_XTILE == seltile.x && SEL_YTILE == seltile.y) {
+				// hide if we click on it again
+				SEL_VISIBLE = !SEL_VISIBLE;
+			} else {
+				SEL_XTILE = seltile.x;
+				SEL_YTILE = seltile.y;
+				SEL_VISIBLE = true;
+			}
+
 		}
 	};
 
