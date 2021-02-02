@@ -240,24 +240,33 @@ function Render_FG_Gardens(ctx)
 		let yi = garden.y;
 		let x = -X_POS + xi*X_TILESIZE;
 		let y = -Y_POS + yi*Y_TILESIZE/2;
+		if ((yi % 2) == 0) {x += X_TILESIZE;}
+
+		ctx.fillStyle = "#00000066";
+		ctx.fillRect(
+			x-(X_TILESIZE*1.25*0.5),
+			y+(Y_TILESIZE*0.5),
+			X_TILESIZE*1.25,
+			Y_TILESIZE*0.25
+		)
 
 		// set no-tile colors
 		ctx.fillStyle = garden.color;
+		ctx.strokeStyle = "#000000";
+		ctx.lineWidth = 2;
 		
-		ctx.beginPath();
-		if ((yi % 2)) {
-			ctx.moveTo(x, y);
-			ctx.lineTo(x-(X_TILESIZE), y+(Y_TILESIZE/2));
-			ctx.lineTo(x, y+(Y_TILESIZE));
-			ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
-		} else {
-			ctx.moveTo(x, y+(Y_TILESIZE / 2));
-			ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
-			ctx.lineTo(x+(X_TILESIZE*2), y+(Y_TILESIZE/2))
-			ctx.lineTo(x+(X_TILESIZE), y);
-		}
-		ctx.closePath();
-		ctx.fill();
+		ctx.fillRect(
+			x-(X_TILESIZE/2),
+			y-(Y_TILESIZE/2),
+			X_TILESIZE,
+			Y_TILESIZE
+		);
+		ctx.strokeRect(
+			x-(X_TILESIZE/2),
+			y-(Y_TILESIZE/2),
+			X_TILESIZE,
+			Y_TILESIZE
+		);
 	}
 }
 
@@ -510,11 +519,11 @@ function Info_Show()
 	let garden = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
 	if (!garden) {
 		document.getElementById("info_name").innerText = "Empty Plot";
-		document.getElementById("info_url").innerText = "Click to claim!";
-		document.getElementById("info_url").href = "#";
+		document.getElementById("info_url_div").classList.add("hidden");
 
 	} else {
 		document.getElementById("info_name").innerText = garden.name;
+		document.getElementById("info_url_div").classList.remove("hidden");
 		document.getElementById("info_url").innerText = garden.url;
 		document.getElementById("info_url").href = garden.url;
 	}
