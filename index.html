@@ -5,7 +5,7 @@
 	<title>Netgardens Online</title>
 	<meta name="descripton" content="Showcase your indie website in an interactive landscape. Plant your garden today!" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<link rel="stylesheet" type="text/css" href="style.css" />
+	<link rel="stylesheet" type="text/css" href="/static/style.css" />
 	<style>
 		body {
 			height: 100vh;
@@ -16,9 +16,9 @@
 			width: 400px;
 		}
 		#comingsoon {
-			color: #FFFF00;
+			color: pink;
 			font-size: 24pt;
-			text-shadow: 3px 3px #3F3F00;
+			text-shadow: 2px 2px #3F3F00;
 			animation: pop 0.58s infinite;
 		}
 		@keyframes pop {
@@ -77,60 +77,16 @@
 			<div id="collapsebtn"></div>
 		</div>
 
-		<div class="map">
+		<!-- internal background canvas -->
+		<div class="map" class="hidden">
 			<canvas id="mapcanvas"></canvas>
-			<canvas id="bg0" width="4096" height="2048" style="display: none"></canvas>
+			<canvas id="bg0" width="4096" height="2048"></canvas>
 		</div>
 	</div>
 </body>
 <!-- javascript stuff -->
 <script src="https://d3js.org/d3-dsv.v2.min.js"></script>
 <script src="https://d3js.org/d3-fetch.v2.min.js"></script>
-<script src="map.js"></script>
-<script>
-	// list of map tilesets (temporary)
-	const TILESETS = {
-		'central-park': 'static/tiles/central-park.png',
-		'arcade-zone':  'static/tiles/testassets-tri.png',
-		'cyber-space':  'static/tiles/testassets-tri.png',
-		'museum-mile':  'static/tiles/testassets-tri.png',
-		'echo-metro':   'static/tiles/testassets-tri.png'
-	}
-	const TILEMAPS = {
-		'central-park': 'static/maps/testmap1.csv',
-		'arcade-zone':  'static/maps/testmap1.csv',
-		'cyber-space':  'static/maps/testmap1.csv',
-		'museum-mile':  'static/maps/testmap1.csv',
-		'echo-metro':   'static/maps/testmap1.csv',
-	}
-	const GARDENSETS = {
-		'central-park': 'static/maps/testmap1_gardens.json'
-	}
-	// collapsable sidebar
-	document.getElementById('collapsebtn').addEventListener(
-		'pointerup', (event) => {
-			event.target.parentElement.classList.toggle("closed");
-		}
-	);
-	// map select
-	document.getElementById('parksel').addEventListener(
-		'change', (e) => {
-			Map_Init(
-				TILESETS[e.target.value],
-				TILEMAPS[e.target.value],
-				GARDENSETS[e.target.value]
-			);
-		}
-	)
-	// autoscroll
-	document.addEventListener("DOMContentLoaded", (event) => {
-		Map_Init(
-			TILESETS['central-park'],
-			TILEMAPS['central-park'],
-			GARDENSETS['central-park']
-		);
-		Map_SetAutoScroll(0.5, 0.5);
-		Info_SetID("main_default", "main_info");
-	});
-</script>
+<script src="/static/scripts/map.js"></script>
+<script src="/static/scripts/ui.js"></script>
 </html>

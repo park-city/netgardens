@@ -10,11 +10,8 @@ body {
 }
 
 main {
-	background: url('static/kde-milkyway.jpg');
-	background-repeat: no-repeat;
-	background-size: cover;
-	color: white;
-	text-shadow: 0 0 2pt black;
+	background: white;
+	color: black;
 	padding: 1em;
 	font-size: 14pt;
 	overflow-y: auto;
