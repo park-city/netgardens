@@ -10,29 +10,31 @@ const TILEMAPS = {
 const GARDENSETS = {
 	'central-park': 'static/maps/testmap1_gardens.json'
 }
-// collapsable sidebar
-document.getElementById('collapsebtn').addEventListener(
-	'pointerup', (event) => {
-		event.target.parentElement.classList.toggle("closed");
-	}
-);
-// map select
-document.getElementById('parksel').addEventListener(
-	'change', (e) => {
-		Map_Init(
-			TILESETS[e.target.value],
-			TILEMAPS[e.target.value],
-			GARDENSETS[e.target.value]
-		);
-	}
-)
-// autoscroll
+
+
+// init
 document.addEventListener("DOMContentLoaded", (event) => {
+
+	// collapsable sidebar(s)
+	for(let e of document.getElementsByClassName('collapsebtn')) {
+		e.addEventListener('pointerup', (event) => {
+			event.target.parentElement.classList.toggle("closed");
+		});
+	}
+
+	// hide splash on click
+	let splash = document.getElementsByClassName('advertise')[0];
+	splash.addEventListener('pointerup', (event) => { splash.remove(); });
+
+	// load map data
 	Map_Init(
 		TILESETS['central-park'],
 		TILEMAPS['central-park'],
 		GARDENSETS['central-park']
 	);
+
+	// set autoscroll
 	Map_SetAutoScroll(0.5, 0.5);
-	Info_SetID("main_default", "main_info");
+	// set sidebar events
+	Info_SetID("sidebars");
 });

@@ -1,83 +1,143 @@
+/* stylesheet for pages w/ map */
 body {
 	font-family: sans-serif;
 	margin: 0;
+	height: 100vh;
+	overflow: hidden;
 }
 
+/* generic classes */
+.hidden {
+	display: none !important;
+}
 .container {
 	display: flex;
 	align-items: stretch;
 	height: 100%;
 }
 
-main {
+/* sidebar */
+.sidebar {
 	background: white;
 	color: black;
 	padding: 1em;
 	font-size: 14pt;
+	width: 400px;
 	overflow-y: auto;
 	box-sizing: border-box;
-	top: 1.7em; /* why? idk lol */
-	position: relative;
-	height: calc(100vh - 1.7em);
+	height: 100vh;
 }
-main button, main label {
+.sidebar button, .sidebar label {
 	font-size: 16pt;
 	width: 20ex;
 	margin: 1pt auto;
 }
-main select {
+.sidebar select {
 	margin-bottom: 1em;
 	font-size: 14pt;
 	width: 22ex;
 }
-main a {
-	color: lightskyblue !important;
-}
 
+/* sidebar collapse */
 .collapsable {
 	position: absolute;
 	display: flex;
 	height: 100%;
 	max-width: 100vw;
 }
-#collapsebtn {
+.collapsebtn {
 	width: 32px;
 	background: grey;
 	height: 100%;
 	cursor: pointer;
 }
-.collapsable.closed main {
+.collapsable.closed .sidebar {
 	display: none;
 }
 
+/* generated map */
 .map {
 	width: 100%;
 }
+.map canvas {
+	cursor: grab;
+	cursor: -moz-grab;
+	cursor: -webkit-grab;
+}
+.map canvas:active {
+	cursor: grabbing;
+	cursor: -moz-grabbing;
+	cursor: -webkit-grabbing;
+}
+/* Change cursor to hyperlink when needed */
+.map canvas.clickable {
+	cursor: pointer;
+}
 
+/* navigation bar */
 nav {
-	width: 100%;
-	box-sizing: border-box;
 	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
 	z-index: 10;
+
+	box-sizing: border-box;
 	display: flex;
 	flex-wrap: wrap;
-	padding-left: 1em;
-	height: 2em;
-	justify-content: flex-end;
-	background: #FBE0A1;
+	padding: 4px;
+	justify-content: center;
+
+	background: #FFDD36;
 	color: black;
-}
-nav::before {
-	content: "Netgardens Online";
-	margin-right: auto;
-	font-size: 1.3em;
-	padding-top: 0.2em;
+	border-radius: 0 0 16px 16px;
+	box-shadow: 0 4px 8px black;
 }
 nav a {
 	text-decoration: none;
 	display: inline;
-	padding: 1ex;
+	margin: 4px;
+	padding: 4px 8px;
+	border-radius: 8px;
+	background: white;
 }
-.hidden {
-	display: none;
+nav #logo {
+	font-weight: bold;
+}
+
+/* Pop-up advertisement for unregistered users */
+.advertise {
+	background: white;
+	padding: 1em;
+	border: 4px solid black;
+	cursor: pointer;
+
+	width: 80vw;
+	max-width: 400px;
+
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	text-align: center;
+}
+.advertise #logo {
+	max-height: 400px;
+	height: 30vh;
+	padding: 1em;
+}
+#comingsoon {
+	color: pink;
+	font-size: 24pt;
+	text-shadow: 2px 2px #3F3F00;
+	animation: pop 0.58s infinite;
+}
+@keyframes pop {
+	from { transform:scale(0.95) }
+	50%  { transform:scale(1.00) }
+	to   { transform:scale(0.95) }
+}
+
+/* work around issue w/ absolute centering */
+@media (max-width: 1000px) {
+	nav { width: 100vw; }
 }

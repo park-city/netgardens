@@ -33,8 +33,7 @@ let AUTOSCROLL_DY = 0;
 let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
-let INFO_ID = "";
-let INFO_DEFAULT_ID = "";
+let SIDEBAR_ID = "";
 
 const COLORS = [
 	"#000022",
@@ -499,17 +498,22 @@ function Garden_GetAtTile(x, y)
 }
 
 // Record where the info panel goes
-function Info_SetID(default_id, info_id)
+function Info_SetID(sidebars_id)
 {
-	INFO_DEFAULT_ID = default_id;
-	INFO_ID = info_id;
+	SIDEBAR_ID = sidebars_id;
+	Info_Hide();
 }
 
 // Populate an info panel
 function Info_Show()
 {
-	document.getElementById(INFO_DEFAULT_ID).classList.add("hidden");
-	let infopanel = document.getElementById(INFO_ID);
+	if (!SIDEBAR_ID) {return;}
+	// first, hide everything else
+	Info_Hide();
+	// then, unhide the parts we need
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
+	sidebars.classList.remove("hidden");
 	infopanel.classList.remove("hidden");
 
 	// List coords
@@ -529,11 +533,17 @@ function Info_Show()
 	}
 }
 
-// Hide the info panel
+// Hide all sidebars and remove collapse button
 function Info_Hide()
 {
-	document.getElementById(INFO_DEFAULT_ID).classList.remove("hidden");
-	document.getElementById(INFO_ID).classList.add("hidden");
+	if (!SIDEBAR_ID) {return;}
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	// hide all sidebars
+	for(let e of sidebars.getElementsByClassName("sidebar")) {
+		e.classList.add("hidden");
+	}
+	// then hide the entire container
+	sidebars.classList.add("hidden");
 }
 
 function Render_Init()
@@ -580,8 +590,8 @@ function Render_Init()
 				SEL_VISIBLE = true;
 			}
 
-			if (INFO_ID && !SEL_VISIBLE) { Info_Hide(); }
-			else if (INFO_ID && SEL_VISIBLE) { Info_Show(); }
+			if (!SEL_VISIBLE) { Info_Hide(); }
+			else { Info_Show(); }
 		}
 	};
 
