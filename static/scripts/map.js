@@ -16,6 +16,8 @@
     License along with Netgardens Online.
     If not, see <https://www.gnu.org/licenses/>.
 */
+
+// lots of global variables
 let X_POS       = 0;
 let Y_POS       = 0;
 let X_TILESIZE  = 64;
@@ -30,6 +32,9 @@ let MOUSE_POS_START = [0, 0];
 let AUTOSCROLL  = false;
 let AUTOSCROLL_DX = 0;
 let AUTOSCROLL_DY = 0;
+let SCROLLTO = false;
+let SCROLLTO_X = 0;
+let SCROLLTO_Y = 0;
 let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
@@ -140,9 +145,7 @@ function Coord_Lookup(x, y)
 
 	x_out = Math.floor(x_out);
 	y_out = Math.floor(y_out);
-	let row_is_offset = Math.floor(y_out % 2) != 0;
-	if (row_is_offset) {x_out += 1;}
-
+	y_out += 1;
 	return {x: x_out, y: y_out};
 }
 
@@ -232,47 +235,53 @@ function Map_CacheGfx(url)
 	});
 }
 
-function Render_FG_Gardens(ctx)
+function Render_FG_SiteLink_Single(ctx, x, y, color)
+{
+	const w = 88 * SCALE;
+	const h = 31 * SCALE;
+
+	// shadow
+	ctx.fillStyle = "#00000066";
+	ctx.fillRect(
+		x-(X_TILESIZE*1.25*0.5*SCALE),
+		y+(Y_TILESIZE*0.5*SCALE),
+		X_TILESIZE*1.25*SCALE,
+		Y_TILESIZE*0.25*SCALE
+	)
+
+	// set button colors
+	// temporary until i bother getting image support
+	ctx.fillStyle = color;
+	ctx.strokeStyle = "#000000";
+	ctx.lineWidth = 2;
+	
+	ctx.fillRect(x-(w/2), y-(h/2), w, h);
+	ctx.strokeRect(x-(w/2), y-(h/2), w, h);
+}
+
+function Render_FG_SiteLink(ctx)
 {
 	for (let garden of GARDENS) {
+		let yi = garden.y - 1;
 		let xi = Math.floor(garden.x / 2) * 2;
-		let yi = garden.y;
+		if (Math.floor(yi % 2) != 0) {
+			xi = Math.floor((garden.x + 1) / 2) * 2;
+		} 
 		let x = -X_POS + xi*X_TILESIZE;
 		let y = -Y_POS + yi*Y_TILESIZE/2;
 		if ((yi % 2) == 0) {x += X_TILESIZE;}
 
-		ctx.fillStyle = "#00000066";
-		ctx.fillRect(
-			x-(X_TILESIZE*1.25*0.5),
-			y+(Y_TILESIZE*0.5),
-			X_TILESIZE*1.25,
-			Y_TILESIZE*0.25
-		)
-
-		// set no-tile colors
-		ctx.fillStyle = garden.color;
-		ctx.strokeStyle = "#000000";
-		ctx.lineWidth = 2;
-		
-		ctx.fillRect(
-			x-(X_TILESIZE/2),
-			y-(Y_TILESIZE/2),
-			X_TILESIZE,
-			Y_TILESIZE
-		);
-		ctx.strokeRect(
-			x-(X_TILESIZE/2),
-			y-(Y_TILESIZE/2),
-			X_TILESIZE,
-			Y_TILESIZE
-		);
+		Render_FG_SiteLink_Single(ctx, x, y, garden.color);
 	}
 }
 
 function Render_FG_Sel(ctx)
 {
+	let yi = SEL_YTILE - 1;
 	let xi = Math.floor(SEL_XTILE / 2) * 2;
-	let yi = SEL_YTILE;
+	if (Math.floor(yi % 2) != 0) {
+		xi = Math.floor((SEL_XTILE + 1) / 2) * 2;
+	} 
 	let x = -X_POS + xi*X_TILESIZE;
 	let y = -Y_POS + yi*Y_TILESIZE/2;
 
@@ -324,6 +333,24 @@ function Render_BG_Tile(ctx, x, y, tile) {
 	ctx.drawImage(SPR[tile], x, y, X_TILESIZE*SCALE, 2*Y_TILESIZE*SCALE);
 }
 
+function Render_BG_Row(ctx, row, y, yi)
+{
+	let x = 0;
+	let xi = 0;
+	for (let tile of row) {
+		try {
+			Render_BG_Tile(ctx, x, y, tile);
+		} catch (e) {
+			// tile not loaded, render dummy and try again in some time
+			// (don't want to do this every frame)
+			Render_BG_Tile_noimg(ctx, x, y, xi, yi);
+			setTimeout(() => {BG_RERENDER = true;}, 200);
+		}
+		x += X_TILESIZE*SCALE;
+		xi += 1;
+	}
+}
+
 // just a generic grid-like thing for now
 function Render_BG(ctx)
 {
@@ -332,34 +359,18 @@ function Render_BG(ctx)
 	ctx.fillStyle = "#B0E0E6";
 	ctx.strokeStyle = "#FFFFFF";
 
-	let x = 0;
 	let y = -Y_TILESIZE*1.5;
-	let xi = 0;
 	let yi = 0;
-	ctx.font = '8px monospace';
 
-	// append first few rows again because graphics
-	let tiles = MAP;
-	tiles.push(tiles[0]);
-	tiles.push(tiles[1]);
-	tiles.push(tiles[2]);
-
-	for (const row of tiles) {
-		for (const tile of row) {
-			try {
-				Render_BG_Tile(ctx, x, y, tile);
-			} catch (e) {
-				// tile not loaded, render dummy and try again in some time
-				// (don't want to do this every frame)
-				Render_BG_Tile_noimg(ctx, x, y, xi, yi);
-				setTimeout(() => {BG_RERENDER = true;}, 200);
-			}
-			x += X_TILESIZE*SCALE;
-			xi += 1;
-		}
-		x = 0;
+	for (const row of MAP) {
+		Render_BG_Row(ctx, row, y, yi);
 		y += (Y_TILESIZE / 2)*SCALE;
-		xi = 0;
+		yi += 1;
+	}
+	// render first few rows again because graphics
+	for (let i = 0; i <= 2; i += 1) {
+		Render_BG_Row(ctx, MAP[i], y, yi);
+		y += (Y_TILESIZE / 2)*SCALE;
 		yi += 1;
 	}
 }
@@ -443,13 +454,13 @@ function Render_Step(timestamp)
 		9999999
 	);
 
-	// Render all visible gardens
-	Render_FG_Gardens(ctx);
-
 	// print current selection
 	if (SEL_VISIBLE) {
 		Render_FG_Sel(ctx);
 	}
+
+	// Render all visible 88x31 buttons
+	Render_FG_SiteLink(ctx);
 
 	// print some debug info
 	/*ctx.fillRect(0, 0, 160, 90);
@@ -504,32 +515,70 @@ function Info_SetID(sidebars_id)
 	Info_Hide();
 }
 
+// Draw a tile to an info panel's preview
+function Info_RenderTile(canvas, x, y, color)
+{
+	// this is bad
+	while (x < 0) { x += MAP[0].length; }
+	while (y < 0) { y += MAP.length; }
+	x = x % MAP[0].length;
+	y = y % MAP.length;
+
+	const tileid = MAP[y][x];
+	if (!canvas.getContext) { return; }
+	const ctx = canvas.getContext('2d');
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	if (tileid % 2) {
+		Render_BG_Tile(ctx, 0, 0, tileid-1);
+		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid);
+	} else {
+		Render_BG_Tile(ctx, 0, 0, tileid);
+		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid+1);
+	}
+
+	if (color) {
+		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, color);
+	}
+}
+
 // Populate an info panel
 function Info_Show()
 {
 	if (!SIDEBAR_ID) {return;}
+
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
+
+	let name = infopanel.querySelector("[data-id='name']");
+	let preview = infopanel.querySelector("[data-id='preview']");
+	let coords = infopanel.querySelector("[data-id='coords'] span");
+	let url = infopanel.querySelector("[data-id='url'] a");
+	let owner = infopanel.querySelector("[data-id='owner'] a");
+
 	// first, hide everything else
 	Info_Hide();
 	// then, unhide the parts we need
-	let sidebars = document.getElementById(SIDEBAR_ID);
-	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
 	sidebars.classList.remove("hidden");
 	infopanel.classList.remove("hidden");
 
-	// List coords
-	document.getElementById("info_coords").innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
-
 	// Find the garden at the plot
 	let garden = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
-	if (!garden) {
-		document.getElementById("info_name").innerText = "Empty Plot";
-		document.getElementById("info_url_div").classList.add("hidden");
 
+	// List coords
+	coords.innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
+	// Render preview
+	Info_RenderTile(preview, SEL_XTILE, SEL_YTILE, garden ? garden.color : null);
+
+	if (!garden) {
+		// unclaimed tile
+		name.innerText = "Unclaimed Tile";
+		url.parentElement.classList.add("hidden");
 	} else {
-		document.getElementById("info_name").innerText = garden.name;
-		document.getElementById("info_url_div").classList.remove("hidden");
-		document.getElementById("info_url").innerText = garden.url;
-		document.getElementById("info_url").href = garden.url;
+		// core tile
+		name.innerText = garden.name;
+		url.parentElement.classList.remove("hidden");
+		url.innerText = garden.url;
+		url.href = garden.url;
 	}
 }
 

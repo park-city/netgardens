@@ -27,15 +27,24 @@ body {
 	box-sizing: border-box;
 	height: 100vh;
 }
+.sidebar div {
+	margin-top: 1ex;
+}
 .sidebar button, .sidebar label {
 	font-size: 16pt;
 	width: 20ex;
 	margin: 1pt auto;
 }
-.sidebar select {
-	margin-bottom: 1em;
-	font-size: 14pt;
-	width: 22ex;
+.sidebar h1 {
+	text-align: center;
+}
+.sidebar canvas {
+	margin: auto;
+	display: block;
+}
+.sidebar > div > b {
+	width: 100px;
+	display: inline-block;
 }
 
 /* sidebar collapse */
@@ -53,6 +62,66 @@ body {
 }
 .collapsable.closed .sidebar {
 	display: none;
+}
+
+/* fancy sidebar buttons */
+.sidebar .fancybuttons {
+	display: flex;
+	flex-wrap: wrap;
+}
+.sidebar .fancybuttons div {
+	margin-top: 0;
+}
+.sidebar .fancybuttons > div {
+	display: grid;
+	text-align: center;
+	margin-top: 32px;
+	width: calc(50% - 16px);
+}
+.sidebar .fancybuttons > div:nth-child(2n) {
+	margin-left: 16px;
+}
+.sidebar .fancybuttons > div img {
+	width: 72px;
+	height: 72px;
+	margin-right: 4px;
+	grid-column: 1;
+	grid-row: 1 / 4;
+}
+.sidebar .fancybuttons > div .name {
+	font-size: 18px;
+	grid-column: 2;
+	grid-row: 1;
+}
+.sidebar .fancybuttons > div .status {
+	font-size: 14px;
+	grid-column: 2;
+	grid-row: 2;
+}
+.sidebar .fancybuttons > div .button {
+	font-size: 14px;
+	border: 2px solid black;
+	border-radius: 0.75em;
+	grid-column: 2;
+	grid-row: 3;
+	width: 80px;
+	height: 20px;
+	margin: auto;
+}
+.sidebar .fancybuttons > div .button.buy {
+	background: #FFDD36;
+}
+.sidebar .fancybuttons > div .button.sell {
+	background: #FC4128;
+	color: white;
+}
+.sidebar .fancybuttons > div .button.action {
+	background: #4573B3;
+	color: white;
+}
+.sidebar .fancybuttons > div .button.disabled {
+	background: #999;
+	color: #666;
 }
 
 /* generated map */

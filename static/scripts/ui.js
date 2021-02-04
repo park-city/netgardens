@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
 	let splash = document.getElementsByClassName('advertise')[0];
 	splash.addEventListener('pointerup', (event) => { splash.remove(); });
 
+	// resize canvas on window resize
+	window.addEventListener('resize', () => { resize_canvas(); });
+
 	// load map data
 	Map_Init(
 		TILESETS['central-park'],
