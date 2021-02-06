@@ -78,8 +78,12 @@ body {
 	margin-top: 32px;
 	width: calc(50% - 16px);
 }
-.sidebar .fancybuttons > div:nth-child(2n) {
+.sidebar .fancybuttons > div:not(.hidden):nth-child(2n) {
 	margin-left: 16px;
+}
+.sidebar .fancybuttons.wide > div {
+	width: 100%;
+	margin-left: unset;
 }
 .sidebar .fancybuttons > div img {
 	width: 72px;
@@ -98,6 +102,11 @@ body {
 	grid-column: 2;
 	grid-row: 2;
 }
+.sidebar .fancybuttons > div .desc {
+	font-size: 14px;
+	grid-column: 3;
+	grid-row: 1 / 4;
+}
 .sidebar .fancybuttons > div .button {
 	font-size: 14px;
 	border: 2px solid black;
@@ -107,6 +116,9 @@ body {
 	width: 80px;
 	height: 20px;
 	margin: auto;
+	padding-top: 3px;
+	color: black;
+	text-decoration: none;
 }
 .sidebar .fancybuttons > div .button.buy {
 	background: #FFDD36;
@@ -122,6 +134,7 @@ body {
 .sidebar .fancybuttons > div .button.disabled {
 	background: #999;
 	color: #666;
+	cursor: default;
 }
 
 /* generated map */
@@ -146,8 +159,7 @@ body {
 /* navigation bar */
 nav {
 	position: absolute;
-	left: 50%;
-	transform: translateX(-50%);
+	right: 0;
 	z-index: 10;
 
 	box-sizing: border-box;
@@ -158,8 +170,8 @@ nav {
 
 	background: #FFDD36;
 	color: black;
-	border-radius: 0 0 16px 16px;
-	box-shadow: 0 4px 8px black;
+	border-radius: 0 0 0 16px;
+	box-shadow: 0 4px 32px #00000099;
 }
 nav a {
 	text-decoration: none;
@@ -168,9 +180,20 @@ nav a {
 	padding: 4px 8px;
 	border-radius: 8px;
 	background: white;
+	color: black;
 }
-nav #logo {
+nav a[data-id='logo'] {
+	font-size: 11px;
 	font-weight: bold;
+	font-style: italic;
+
+	margin: 0;
+	background: none;
+}
+nav a.disabled {
+	background: #999;
+	color: #666;
+	cursor: default;
 }
 
 /* Pop-up advertisement for unregistered users */
@@ -204,9 +227,4 @@ nav #logo {
 	from { transform:scale(0.95) }
 	50%  { transform:scale(1.00) }
 	to   { transform:scale(0.95) }
-}
-
-/* work around issue w/ absolute centering */
-@media (max-width: 1000px) {
-	nav { width: 100vw; }
 }

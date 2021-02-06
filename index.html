@@ -9,13 +9,13 @@
 </head>
 <body>
 	<nav>
-		<a href="#" data-id="logo">NG.O</span>
-		<a href="#" data-id="parksel">Central Park</a>
-		<a href="#" data-id="search">🔍</a>
-		<a href="#" data-id="browse">📃</a>
-		<a href="#" data-id="listfavs">❤️</a>
-		<a href="#" data-id="viewcoins">§ 999,999</a>
-		<a href="#" data-id="login">Login</a>
+		<a href="#" data-id="logo">Netgardens<br />Online</span>
+		<a href="#" data-id="parksel" title="Switch Park">Central Park</a>
+		<a href="#" data-id="search" title="Search" class="disabled">🔍</a>
+		<a href="#" data-id="browse" title="Browse" class="disabled">📃</a>
+		<a href="#" data-id="listfavs" title="Bookmarks" class="disabled">❤️</a>
+		<a href="#" data-id="viewcoins" class="disabled">§ 999,999</a>
+		<a href="#" data-id="login" class="disabled">Login</a>
 	</nav>
 
 	<div class="container">
@@ -38,31 +38,55 @@
 						<img src="/static/icons/core.png" alt="Claim Core Tile" />
 						<div class="name">Core Tile</div>
 						<div class="status">0/1 claimed</div>
-						<div class="button buy">§ 30</div>
+						<a href="#" class="button buy">§ 30</a>
 					</div>
 					<div data-id="backdrop">
 						<img src="/static/icons/backdrop.png" alt="Unlock Backdrop Tile" />
 						<div class="name">Backdrop</div>
 						<div class="status action">Purchased</div>
-						<div class="button action">Edit GFX</div>
+						<a href="#" class="button action">Edit GFX</a>
 					</div>
 					<div data-id="buy">
 						<img src="/static/icons/buy.png" alt="Purchase Tile for Garden" />
 						<div class="name">Buy Tile</div>
 						<div class="status">3/9 used</div>
-						<div class="button buy">§ 15</div>
+						<a href="#" class="button buy">§ 15</a>
 					</div>
-					<div data-id="sell" class="hidden">
+					<!--<div data-id="sell" class="hidden">
 						<img src="/static/icons/sell.png" alt="Sell Tile" />
 						<div class="name">Sell Tile</div>
 						<div class="status">3/9 tiles left</div>
 						<div class="button sell">§ 15</div>
-					</div>
+					</div>-->
 					<div data-id="teleport">
 						<img src="/static/icons/teleport.png" alt="Buy Teleport Tile" />
 						<div class="name">Buy Tile</div>
 						<div class="status">Not in garden</div>
-						<div class="button disabled">§ 15</div>
+						<a href="#" class="button disabled">§ 15</a>
+					</div>
+				</div>
+			</div>
+			<div class="sidebar" data-id="parksel">
+				<h1>Choose a Park</h1>
+				<div class="fancybuttons">
+					<div data-id="cancel">
+						<img src="/static/icons/sell.png" alt="Cancel" />
+						<a href="#" class="button sell">Cancel</a>
+					</div>
+					<div data-id="central-park">
+						<img src="/static/icons/central-park.png" alt="Central Park" />
+						<div class="name">Central Park</div>
+						<a href="#" class="button action">Visit</a>
+					</div>
+					<div data-id="fur-world">
+						<img src="/static/icons/fur-world.png" alt="Fur World" />
+						<div class="name">Fur World</div>
+						<a href="#" class="button disabled">Visit</a>
+					</div>
+					<div data-id="debug-park">
+						<img src="/static/icons/debug-park.png" alt="Debug Park" />
+						<div class="name">Block Land</div>
+						<a href="#" class="button action">Visit</a>
 					</div>
 				</div>
 			</div>
