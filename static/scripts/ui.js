@@ -60,6 +60,13 @@ function ParkSel_Register()
 	}
 }
 
+function NetCoins_UpdateDisplay(amount)
+{
+	let navbar = document.getElementsByTagName("nav")[0];
+	let netcoins = document.querySelector("[data-id='viewcoins']");
+	netcoins.innerText = "§ " + amount;
+}
+
 // init
 document.addEventListener("DOMContentLoaded", (event) =>
 {
@@ -96,6 +103,8 @@ document.addEventListener("DOMContentLoaded", (event) =>
 		e.preventDefault(); ParkSel_Show();
 	});
 	ParkSel_Register();
+
+	NetCoins_UpdateDisplay(NetCoins_Query());
 
 	// load map data
 	Map_Init(

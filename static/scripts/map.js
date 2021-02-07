@@ -39,6 +39,7 @@ let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
 let SIDEBAR_ID = "";
+let NETCOINS = 100;       // currency
 
 const COLORS = [
 	"#000022",
@@ -565,6 +566,39 @@ function Info_RenderTile(canvas, x, y, garden)
 	}
 }
 
+// Set properties for a FancyButton
+function Info_SetButton(div, status, cost, action)
+{
+	let button = div.querySelector(".button");
+	let status_elem = div.querySelector(".status");
+
+	status_elem.innerText = status;
+	button.innerText = "§ " + cost;
+	if (NetCoins_Test(cost) && action) {
+		button.classList.remove("disabled");
+		button.onpointerup = action;
+	} else {
+		button.classList.add("disabled");
+		button.onpointerup = null;
+	}
+}
+
+function Garden_ClaimTile()
+{
+	// temporary whatever
+	let newgarden = {
+		"name": "InvisibleUp",
+		"owner": "invis",
+		"x": SEL_XTILE,
+		"y": SEL_YTILE,
+		"url": "https://invisibleup.com/",
+		"img": "/static/88x31s/invis.gif"
+	}
+	GARDENS.push(newgarden);
+	NetCoins_Transaction(30);
+	Info_Show();
+}
+
 // Populate an info panel
 function Info_Show()
 {
@@ -578,6 +612,11 @@ function Info_Show()
 	let coords = infopanel.querySelector("[data-id='coords'] span");
 	let url = infopanel.querySelector("[data-id='url'] a");
 	let owner = infopanel.querySelector("[data-id='owner'] a");
+
+	let coretile = infopanel.querySelector("[data-id='core']");
+	let edittile = infopanel.querySelector("[data-id='backdrop']");
+	let buytile = infopanel.querySelector("[data-id='buy']");
+	let teletile = infopanel.querySelector("[data-id='teleport']");
 
 	// first, hide everything else
 	Info_Hide();
@@ -598,14 +637,19 @@ function Info_Show()
 		name.innerText = "Unclaimed Tile";
 		url.parentElement.classList.add("hidden");
 		owner.parentElement.classList.add("hidden");
+
+		Info_SetButton(coretile, "0/1 claimed", 30, Garden_ClaimTile);
 	} else {
 		// core tile
 		name.innerText = garden.name;
+
 		url.parentElement.classList.remove("hidden");
 		url.innerText = garden.url;
 		url.href = garden.url;
+
 		owner.parentElement.classList.remove("hidden");
 		owner.innerText = garden.owner;
+		Info_SetButton(coretile, "Claimed", 30, null);
 	}
 }
 
@@ -620,6 +664,33 @@ function Info_Hide()
 	}
 	// then hide the entire container
 	sidebars.classList.add("hidden");
+}
+
+// Return the number of "credits" or coins or whatever
+// this should query the database
+function NetCoins_Query()
+{
+	return NETCOINS;
+}
+
+// Determine if some item can be purchased
+// "delta" should be a server-side lookup table
+function NetCoins_Test(delta)
+{
+	return ((NetCoins_Query() - delta) >= 0);
+}
+
+// Do a transaction
+// this should be server-side
+function NetCoins_Transaction(delta)
+{
+	if ((NETCOINS - delta) < 0) { 
+		return false; 
+	} else {
+		NETCOINS -= delta;
+		NetCoins_UpdateDisplay(NetCoins_Query());
+		return true;
+	}
 }
 
 function Render_Init()
