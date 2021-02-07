@@ -51,6 +51,13 @@ article img {
 	color: #888;
 	text-align: center;
 }
+article .notice {
+	background: steelblue;
+	color: white;
+	margin: auto;
+	padding: 1ex;
+	text-align: center;
+}
 
 /* Footer */
 footer {
