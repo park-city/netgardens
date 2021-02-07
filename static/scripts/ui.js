@@ -75,13 +75,21 @@ document.addEventListener("DOMContentLoaded", (event) =>
 
 	// hide splash on click
 	let splash = document.getElementsByClassName('advertise')[0];
-	splash.addEventListener('pointerup', (event) => { splash.remove(); });
+	let splash_close = splash.querySelector("[data-id='close']");
+	splash_close.addEventListener('pointerup', (event) => {
+		splash.classList.add('hidden');
+	});
 
 	// resize canvas on window resize
 	window.addEventListener('resize', () => { resize_canvas(); });
 
 	// navbar actions
 	let navbar = document.getElementsByTagName("nav")[0];
+
+	let nav_ngo = navbar.querySelector("[data-id='logo']");
+	nav_ngo.addEventListener('pointerup', (event) => {
+		splash.classList.remove('hidden');
+	});
 
 	let nav_parksel = navbar.querySelector("[data-id='parksel']");
 	nav_parksel.addEventListener('pointerup', (e) => {

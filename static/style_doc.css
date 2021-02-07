@@ -1,0 +1,61 @@
+/* Stylesheet for informational pages */
+
+body {
+	font-family: sans-serif;
+	margin: 0;
+}
+
+/* generic classes */
+.hidden {
+	display: none !important;
+}
+.container {
+	display: flex;
+	align-items: stretch;
+	height: 100%;
+}
+body > .container {
+	min-height: 100vh;
+}
+
+/* Navbar */
+nav {
+	display: flex;
+	flex-direction: column;
+	background-color: lightsteelblue;
+	width: 200px;
+	padding: 2em;
+}
+nav #logo {
+	width: 100%;
+}
+nav a {
+	margin-top: 1ex;
+}
+nav a.active {
+	font-weight: bold;
+}
+
+/* Main content */
+article {
+	width: 100%;
+	padding: 2em;
+	background: white;
+	line-height: 1.2em;
+	padding-bottom: 1em;
+}
+article img {
+	display: block;
+	width: 60%;
+	margin: auto;
+	color: #888;
+	text-align: center;
+}
+
+/* Footer */
+footer {
+	text-align: center;
+	color: 666;
+	font-size: small;
+	margin-bottom: 0;
+}

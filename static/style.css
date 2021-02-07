@@ -65,73 +65,78 @@ body {
 }
 
 /* fancy sidebar buttons */
-.sidebar .fancybuttons {
+.fancybuttons {
 	display: flex;
 	flex-wrap: wrap;
 }
-.sidebar .fancybuttons div {
+.fancybuttons div {
 	margin-top: 0;
 }
-.sidebar .fancybuttons > div {
+.fancybuttons > div {
 	display: grid;
 	text-align: center;
 	margin-top: 32px;
 	width: calc(50% - 16px);
 }
-.sidebar .fancybuttons > div:not(.hidden):nth-child(2n) {
+.fancybuttons > div:not(.hidden):nth-child(2n) {
 	margin-left: 16px;
 }
-.sidebar .fancybuttons.wide > div {
+.fancybuttons.wide > div {
 	width: 100%;
 	margin-left: unset;
 }
-.sidebar .fancybuttons > div img {
+.fancybuttons > div img {
 	width: 72px;
 	height: 72px;
 	margin-right: 4px;
 	grid-column: 1;
 	grid-row: 1 / 4;
 }
-.sidebar .fancybuttons > div .name {
+.fancybuttons > div .name {
 	font-size: 18px;
 	grid-column: 2;
 	grid-row: 1;
 }
-.sidebar .fancybuttons > div .status {
+.fancybuttons > div .status {
 	font-size: 14px;
 	grid-column: 2;
 	grid-row: 2;
 }
-.sidebar .fancybuttons > div .desc {
+.fancybuttons > div .desc {
 	font-size: 14px;
 	grid-column: 3;
 	grid-row: 1 / 4;
 }
-.sidebar .fancybuttons > div .button {
-	font-size: 14px;
-	border: 2px solid black;
-	border-radius: 0.75em;
+.fancybuttons > div .button {
 	grid-column: 2;
 	grid-row: 3;
+	font-size: 14px;
 	width: 80px;
+}
+.button {
+	display: inline-block;
+	border: 2px solid black;
+	border-radius: 0.75em;
+	width: 100px;
 	height: 20px;
 	margin: auto;
 	padding-top: 3px;
+	margin-top: 1ex;
 	color: black;
 	text-decoration: none;
 }
-.sidebar .fancybuttons > div .button.buy {
+.button.buy {
 	background: #FFDD36;
 }
-.sidebar .fancybuttons > div .button.sell {
+.button.sell {
 	background: #FC4128;
 	color: white;
 }
-.sidebar .fancybuttons > div .button.action {
+.button.action {
 	background: #4573B3;
 	color: white;
 }
-.sidebar .fancybuttons > div .button.disabled {
+.button.disabled {
 	background: #999;
 	color: #666;
 	cursor: default;
@@ -201,7 +206,6 @@ nav a.disabled {
 	background: white;
 	padding: 1em;
 	border: 4px solid black;
-	cursor: pointer;
 
 	width: 80vw;
 	max-width: 400px;
@@ -218,10 +222,11 @@ nav a.disabled {
 	padding: 1em;
 }
 #comingsoon {
-	color: pink;
+	color: lightsteelblue;
 	font-size: 24pt;
 	text-shadow: 2px 2px #3F3F00;
 	animation: pop 0.58s infinite;
+	margin: 0;
 }
 @keyframes pop {
 	from { transform:scale(0.95) }
