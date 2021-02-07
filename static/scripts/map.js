@@ -49,9 +49,10 @@ const COLORS = [
 	"#1144CC",
 	"#1155EE",
 ]
-var SPR = [];
-var MAP = [];
-var GARDENS = [];
+let SPR = [];
+let MAP = [];
+let GARDENS = [];
+let OVERLAYS = {};
 
 const NUM_BG = 1;
 let CANVAS_BG = null;
@@ -235,7 +236,21 @@ function Map_CacheGfx(url)
 	});
 }
 
-function Render_FG_SiteLink_Single(ctx, x, y, color)
+// cache 88x31 button graphics
+function Garden_CacheGfx(gardens)
+{
+	for (let garden of gardens) {
+		let img = new Image()
+		img.src = garden.img;
+		img.decode().then(() => {
+			return createImageBitmap(img, 0, 0, 88, 31);
+		}).then((bitmap) => {
+			OVERLAYS[garden.img] = bitmap;
+		});
+	}
+}
+
+function Render_FG_SiteLink_Single(ctx, x, y, img)
 {
 	const w = 88 * SCALE;
 	const h = 31 * SCALE;
@@ -244,19 +259,27 @@ function Render_FG_SiteLink_Single(ctx, x, y, color)
 	ctx.fillStyle = "#00000066";
 	ctx.fillRect(
 		x-(X_TILESIZE*1.25*0.5*SCALE),
-		y+(Y_TILESIZE*0.5*SCALE),
+		y+(Y_TILESIZE*0.4*SCALE),
 		X_TILESIZE*1.25*SCALE,
 		Y_TILESIZE*0.25*SCALE
 	)
 
-	// set button colors
-	// temporary until i bother getting image support
-	ctx.fillStyle = color;
+	// button
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 2;
-	
-	ctx.fillRect(x-(w/2), y-(h/2), w, h);
-	ctx.strokeRect(x-(w/2), y-(h/2), w, h);
+	let dx = Math.floor(x - (w/2));
+	let dy = Math.floor(y - (h/2));
+
+	// outline
+	try {
+		// button gfx
+		ctx.drawImage(OVERLAYS[img], dx, dy);
+	} catch (e) {
+		// placeholder when loading
+		ctx.fillStyle = "#B0E0E6";
+		ctx.strokeRect(dx, dy, w, h);
+		ctx.fillRect(dx, dy, w, h);
+	}
 }
 
 function Render_FG_SiteLink(ctx)
@@ -271,7 +294,7 @@ function Render_FG_SiteLink(ctx)
 		let y = -Y_POS + yi*Y_TILESIZE/2;
 		if ((yi % 2) == 0) {x += X_TILESIZE;}
 
-		Render_FG_SiteLink_Single(ctx, x, y, garden.color);
+		Render_FG_SiteLink_Single(ctx, x, y, garden.img);
 	}
 }
 
@@ -489,6 +512,7 @@ function Map_Init(tileset_url, tilemap_url, gardenset_url)
 	})
 	.then((gardens) => {
 		GARDENS = gardens;
+		Garden_CacheGfx(gardens);
 		return Map_LoadFromCSV(tilemap_url);
 	})
 	.then((map) => {
@@ -516,7 +540,7 @@ function Info_SetID(sidebars_id)
 }
 
 // Draw a tile to an info panel's preview
-function Info_RenderTile(canvas, x, y, color)
+function Info_RenderTile(canvas, x, y, garden)
 {
 	// this is bad
 	while (x < 0) { x += MAP[0].length; }
@@ -536,8 +560,8 @@ function Info_RenderTile(canvas, x, y, color)
 		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid+1);
 	}
 
-	if (color) {
-		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, color);
+	if (garden && garden.img) {
+		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, garden.img);
 	}
 }
 
@@ -567,18 +591,21 @@ function Info_Show()
 	// List coords
 	coords.innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
 	// Render preview
-	Info_RenderTile(preview, SEL_XTILE, SEL_YTILE, garden ? garden.color : null);
+	Info_RenderTile(preview, SEL_XTILE, SEL_YTILE, garden);
 
 	if (!garden) {
 		// unclaimed tile
 		name.innerText = "Unclaimed Tile";
 		url.parentElement.classList.add("hidden");
+		owner.parentElement.classList.add("hidden");
 	} else {
 		// core tile
 		name.innerText = garden.name;
 		url.parentElement.classList.remove("hidden");
 		url.innerText = garden.url;
 		url.href = garden.url;
+		owner.parentElement.classList.remove("hidden");
+		owner.innerText = garden.owner;
 	}
 }
 

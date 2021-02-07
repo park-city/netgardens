@@ -1,16 +1,17 @@
 [
 	{
 		"name": "InvisibleUp",
+		"owner": "invis",
 		"x": 12,
 		"y": 5,
 		"url": "https://invisibleup.com/",
-		"color": "#FDC82B"
-	},
-	{
+		"img": "/static/88x31s/invis.gif"
+	}, {
 		"name": "Park City",
+		"owner": "invis",
 		"x": 16,
 		"y": 9,
 		"url": "https://park-city.club/",
-		"color": "#472F83"
+		"img": "/static/88x31s/parkcity.gif"
 	}
 ]
