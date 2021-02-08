@@ -2,6 +2,7 @@
 	{
 		"name": "InvisibleUp's Garden",
 		"owners": ["invis"],
+		"color": "#B54864",
 		"tiles": [
 			{
 				"name": "InvisibleUp",
@@ -27,7 +28,7 @@
 				"orient": 0,
 				"is_gfx": true,
 				"is_tele": true,
-				"park": "debug-park",
+				"dpark": "debug-park",
 				"dx": 16,
 				"dy": 9
 			}
@@ -35,6 +36,7 @@
 	}, {
 		"name": "Park City's Garden",
 		"owners": ["sprite", "exo"],
+		"color": "#1D1F55",
 		"tiles": [
 			{
 				"name": "Park City",

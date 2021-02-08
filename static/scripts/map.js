@@ -38,7 +38,7 @@ let SCROLLTO_Y = 0;
 let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
-let NETCOINS = 100;       // currency
+let GARDEN_OVERLAY = false;
 
 const COLORS = [
 	"#000022",
@@ -248,11 +248,31 @@ function Garden_CacheGfx(gardens)
 	}
 }
 
-function Render_FG_SiteLink_Single(ctx, x, y, tile)
+function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
 {
 	const w = 88 * SCALE;
 	const h = 31 * SCALE;
-	if (!tile.is_core) { return; } // only core tiles
+
+	// garden overlay
+	if (GARDEN_OVERLAY && color) {
+		let color_alpha = d3.color(color);
+		color_alpha.opacity = 0.75;
+		ctx.fillStyle = color_alpha.toString();
+		ctx.strokeStyle = "transparent";
+		Render_FG_TileShape(ctx, x, y, tile.orient, 1);
+	}
+
+	// special-case tele tiles with fancy border
+	if (tile.is_tele) {
+		ctx.fillStyle = "transparent";
+		ctx.strokeStyle = "gold"; // test
+		ctx.lineWidth = 8;
+		Render_FG_TileShape(ctx, x, y, tile.orient, 1);
+		return;
+	}
+
+	// only continue for core tiles
+	if (!tile.is_core) { return; }
 
 	// shadow
 	ctx.fillStyle = "#00000066";
@@ -295,9 +315,29 @@ function Render_FG_SiteLink(ctx)
 			let y = -Y_POS + yi*Y_TILESIZE/2;
 			if ((yi % 2) == 0) {x += X_TILESIZE;}
 
-			Render_FG_SiteLink_Single(ctx, x, y, tile);
+			Render_FG_SiteLink_Single(ctx, x, y, tile, garden.color);
 		}
 	}
+}
+
+// render the shape of some tile at the given x/y coords
+function Render_FG_TileShape(ctx, x, y, orient, evenrow)
+{
+	ctx.beginPath();
+	if (evenrow) {
+		ctx.moveTo(x, y);
+		ctx.lineTo(x-(X_TILESIZE), y+(Y_TILESIZE/2));
+		ctx.lineTo(x, y+(Y_TILESIZE));
+		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
+	} else {
+		ctx.moveTo(x, y+(Y_TILESIZE / 2));
+		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
+		ctx.lineTo(x+(X_TILESIZE*2), y+(Y_TILESIZE/2))
+		ctx.lineTo(x+(X_TILESIZE), y);
+	}
+	ctx.closePath();
+	ctx.fill();
+	ctx.stroke();
 }
 
 function Render_FG_Sel(ctx)
@@ -311,23 +351,10 @@ function Render_FG_Sel(ctx)
 	let y = -Y_POS + yi*Y_TILESIZE/2;
 
 	// set no-tile colors
+	ctx.fillStyle = "transparent";
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 5;
-
-	ctx.beginPath();
-	if ((yi % 2)) {
-		ctx.moveTo(x, y);
-		ctx.lineTo(x-(X_TILESIZE), y+(Y_TILESIZE/2));
-		ctx.lineTo(x, y+(Y_TILESIZE));
-		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE/2));
-	} else {
-		ctx.moveTo(x, y+(Y_TILESIZE / 2));
-		ctx.lineTo(x+(X_TILESIZE), y+(Y_TILESIZE));
-		ctx.lineTo(x+(X_TILESIZE*2), y+(Y_TILESIZE/2))
-		ctx.lineTo(x+(X_TILESIZE), y);
-	}
-	ctx.closePath();
-	ctx.stroke();
+	Render_FG_TileShape(ctx, x, y, 0, (yi % 2));
 }
 
 // todo: this doesn't align with bg properly
@@ -345,6 +372,7 @@ function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 	}
 	ctx.closePath();
 	ctx.fill();
+	ctx.stroke();
 	// render debug text
 	/*ctx.fillStyle = 'white';
 	ctx.fillText(
@@ -412,6 +440,18 @@ function Map_SetAutoScroll(dx, dy)
 	AUTOSCROLL = true;
 	AUTOSCROLL_DX = dx;
 	AUTOSCROLL_DY = dy;
+}
+
+// Toggle garden overlay flag and return new value
+function Garden_ToggleOverlay()
+{
+	GARDEN_OVERLAY = !GARDEN_OVERLAY;
+	return GARDEN_OVERLAY;
+}
+// Get current value of garden overlay flag
+function Garden_OverlayActive()
+{
+	return GARDEN_OVERLAY;
 }
 
 // thing to do every frame

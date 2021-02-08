@@ -53,6 +53,8 @@ function Garden_GetPrice(garden)
 }
 
 /// NetCoins management ////////////////////////////////////////////////////////
+let NETCOINS = 100;       // currency
+
 // Return the number of "credits" or coins or whatever
 // this should query the database
 function NetCoins_Query()
@@ -75,7 +77,7 @@ function NetCoins_Transaction(delta)
 		return false;
 	} else {
 		NETCOINS -= delta;
-		NetCoins_UpdateDisplay(NetCoins_Query());
+		Nav_UpdateNetCoins();
 		return true;
 	}
 }

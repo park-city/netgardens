@@ -21,7 +21,7 @@ body {
 	background: white;
 	color: black;
 	padding: 1em;
-	font-size: 14pt;
+	font-size: 18px;
 	width: 400px;
 	overflow-y: auto;
 	box-sizing: border-box;
@@ -37,6 +37,7 @@ body {
 }
 .sidebar h1 {
 	text-align: center;
+	font-size: 36px;
 }
 .sidebar canvas {
 	margin: auto;
@@ -211,6 +212,7 @@ nav {
 	position: absolute;
 	right: 0;
 	z-index: 10;
+	font-size: 14px;
 
 	box-sizing: border-box;
 	display: flex;
@@ -240,10 +242,16 @@ nav a[data-id='logo'] {
 	margin: 0;
 	background: none;
 }
+nav a[data-id='viewcoins'] {
+	cursor: default;
+}
 nav a.disabled {
 	background: #999;
 	color: #666;
 	cursor: default;
+}
+nav a.active {
+	box-shadow: 0 0 8px 4px white;
 }
 
 /* Pop-up advertisement for unregistered users */

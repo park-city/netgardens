@@ -100,6 +100,7 @@ function Info_Show_GetElems()
 	let name = infopanel.querySelector("[data-id='name']");
 	let url = infopanel.querySelector("[data-id='url'] a");
 	let owners = infopanel.querySelector("[data-id='owners'] [data-id='list']");
+	let teletarget = infopanel.querySelector("[data-id='teletarget'] a");
 
 	let coretile = infopanel.querySelector("[data-id='core']");
 	let edittile = infopanel.querySelector("[data-id='backdrop']");
@@ -113,6 +114,7 @@ function Info_Show_GetElems()
 		'name': name,
 		'url': url,
 		'owners': owners,
+		'teletarget': teletarget,
 		'coretile': coretile,
 		'edittile': edittile,
 		'buytile': buytile,
@@ -151,6 +153,14 @@ function Info_Show_OwnedTile(garden, tile)
 		a.url.parentElement.classList.add("hidden");
 	}
 
+	// set teleport target if applicable
+	if (tile.is_tele) {
+		a.teletarget.parentElement.classList.remove("hidden")
+		a.teletarget.innerText = tile.dpark; // todo: pretty name lookup
+	} else {
+		a.teletarget.parentElement.classList.add("hidden")
+	}
+
 	/// set buttons for owner ///
 	if (garden.owners.includes(User_GetName()))
 	{
@@ -174,7 +184,7 @@ function Info_Show_OwnedTile(garden, tile)
 			Info_SetButton(a.edittile, "Purchased", 0, null, "Edit GFX");
 		} else {
 			// todo: link to buy
-			Info_SetButton(a.edittile, "", gfxprice, null, NetCoins_Format(gfxprice));
+			Info_SetButton(a.edittile, "Edit tile gfx", gfxprice, null, NetCoins_Format(gfxprice));
 		}
 
 		// teleport
@@ -184,7 +194,7 @@ function Info_Show_OwnedTile(garden, tile)
 			Info_SetButton(a.teletile, "Purchased", 0, null, "Set Target");
 		} else {
 			// todo: link to buy
-			Info_SetButton(a.teletile, "", teleprice, null, NetCoins_Format(teleprice));
+			Info_SetButton(a.teletile, "Link gardens", teleprice, null, NetCoins_Format(teleprice));
 		}
 	} else {
 		Info_HideButton(a.buytile);
@@ -203,10 +213,11 @@ function Info_Show_VacantTile()
 {
 	let a = Info_Show_GetElems();
 
-	// unclaimed tile
+	// set all info lines to default / hidden
 	a.name.innerText = "Unclaimed Tile";
 	a.url.parentElement.classList.add("hidden");
 	a.owners.parentElement.classList.add("hidden");
+	a.teletarget.parentElement.classList.add("hidden")
 
 	/// buttons and such ///
 	// core tile
@@ -285,17 +296,37 @@ function Info_Hide()
 	sidebars.classList.add("hidden");
 }
 
+/// Park Selection Sidebar /////////////////////////////////////////////////////
+
 function ParkSel_Show()
 {
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
 	let infopanel = sidebars.querySelector("[data-id='parksel']");
+	let nav_parksel = document.querySelector("nav a[data-id='parksel']");
+
+	// close if already open
+	if (nav_parksel.classList.contains("active")) {
+		ParkSel_Hide();
+		return;
+	}
 
 	// first, hide everything else
 	Info_Hide();
 	// then, unhide the parts we need
 	sidebars.classList.remove("hidden");
 	infopanel.classList.remove("hidden");
+
+	// set navbar button active
+	nav_parksel.classList.add("active");
+}
+
+function ParkSel_Hide()
+{
+	if (!SIDEBAR_ID) {return;}
+	let nav_parksel = document.querySelector("nav a[data-id='parksel']");
+	Info_Hide();
+	nav_parksel.classList.remove("active");
 }
 
 // register the parksel icons
@@ -311,7 +342,7 @@ function ParkSel_Register()
 		if (button.classList.contains("disabled")) { continue; }
 		if (park.dataset.id == "cancel") {
 			button.addEventListener('pointerup', (e) => {
-				Info_Hide();
+				ParkSel_Hide();
 			});
 		} else {
 			let name = park.getElementsByClassName("name")[0].innerText;
@@ -325,17 +356,35 @@ function ParkSel_Register()
 				// Set navbar text
 				nav_parksel.innerText = name;
 				// Close panel
-				Info_Hide();
+				ParkSel_Hide();
 			});
 		}
 	}
 }
 
-function NetCoins_UpdateDisplay(amount)
+/// Main Navbar ////////////////////////////////////////////////////////////////
+
+function Nav_UpdateNetCoins()
 {
 	let navbar = document.getElementsByTagName("nav")[0];
-	let netcoins = document.querySelector("[data-id='viewcoins']");
+	let netcoins = navbar.querySelector("[data-id='viewcoins']");
+
+	let amount = NetCoins_Query();
 	netcoins.innerText = NetCoins_Format(amount);
+}
+
+// Toggle garden ownership overlay
+function Nav_ToggleOverlay()
+{
+	let navbar = document.getElementsByTagName("nav")[0];
+	let overlay = navbar.querySelector("[data-id='overlay']");
+
+	let state = Garden_ToggleOverlay();
+	if (state) {
+		overlay.classList.add("active")
+	} else {
+		overlay.classList.remove("active")
+	}
 }
 
 // init
@@ -361,21 +410,37 @@ document.addEventListener("DOMContentLoaded", (event) =>
 	// resize canvas on window resize
 	window.addEventListener('resize', () => { resize_canvas(); });
 
-	// navbar actions
+	/// navbar actions ///
 	let navbar = document.getElementsByTagName("nav")[0];
 
+	// logo: show splash screen
 	let nav_ngo = navbar.querySelector("[data-id='logo']");
 	nav_ngo.addEventListener('pointerup', (event) => {
+		e.preventDefault();
 		splash.classList.remove('hidden');
 	});
 
+	// park name: show park selector
 	let nav_parksel = navbar.querySelector("[data-id='parksel']");
 	nav_parksel.addEventListener('pointerup', (e) => {
-		e.preventDefault(); ParkSel_Show();
+		e.preventDefault();
+		ParkSel_Show();
 	});
 	ParkSel_Register();
 
-	NetCoins_UpdateDisplay(NetCoins_Query());
+	// 🔍: toggle overlay
+	let nav_overlay = navbar.querySelector("[data-id='overlay']");
+	nav_overlay.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		Nav_ToggleOverlay();
+	});
+	// and set the active state just in case
+	if (Garden_OverlayActive()) {
+		nav_overlay.classList.add("active");
+	}
+
+	// netcoins: init value
+	Nav_UpdateNetCoins();
 
 	// load map data
 	Map_Init(

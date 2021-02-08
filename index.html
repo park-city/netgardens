@@ -9,6 +9,7 @@
 	<!-- javascript stuff. todo: convert to js modules -->
 	<script src="https://d3js.org/d3-dsv.v2.min.js" defer></script>
 	<script src="https://d3js.org/d3-fetch.v2.min.js" defer></script>
+	<script src="https://d3js.org/d3-color.v2.min.js" defer></script>
 	<script src="/static/scripts/garden.js" defer></script>
 	<script src="/static/scripts/map.js" defer></script>
 	<script src="/static/scripts/accounting.js" defer></script>
@@ -18,7 +19,7 @@
 	<nav>
 		<a href="#" data-id="logo">Netgardens<br />Online</span>
 		<a href="#" data-id="parksel" title="Switch Park">Central Park</a>
-		<a href="#" data-id="search" title="Search" class="disabled">🔍</a>
+		<a href="#" data-id="overlay" title="View Garden Overlay">🔍</a>
 		<a href="#" data-id="browse" title="Browse" class="disabled">📃</a>
 		<a href="#" data-id="listfavs" title="Bookmarks" class="disabled">❤️</a>
 		<a href="#" data-id="viewcoins"></a>
@@ -38,6 +39,9 @@
 				</div>
 				<div data-id="url">
 					<b>URL:</b><a href="#" target="_blank"></a>
+				</div>
+				<div data-id="teletarget">
+					<b>Teleport:</b><a href="#"></a>
 				</div>
 
 				<div class="fancybuttons">
@@ -76,12 +80,12 @@
 			<div class="sidebar" data-id="parksel">
 				<h1>Choose a Park</h1>
 				<div class="fancylist">
-					<div data-id="cancel">
+					<!--<div data-id="cancel">
 						<img src="/static/icons/sell.png" alt="Cancel" />
 						<div class="name"></div>
 						<div class="desc"></div>
 						<a href="#" class="button sell">Cancel</a>
-					</div>
+					</div>-->
 					<div data-id="central-park">
 						<img src="/static/icons/central-park.png" alt="Central Park" />
 						<div class="name">Central Park</div>
