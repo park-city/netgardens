@@ -236,13 +236,29 @@ function Info_Show_VacantTile()
 	let quota_any = Quota_AnyTile();
 	let price_any = Garden_GetTilePrice({is_core: true});
 	let fcn_any = (quota_core > 0) ? Garden_ClaimTile : null;
-	Info_SetButton(
-		a.buytile,
-		quota_any + " left",
-		price_any,
-		fcn_any,
-		NetCoins_Format(price_any)
-	);
+	let dist = Garden_GetNearestOwned_Dist(User_GetName());
+	const max_dist = 2.5;
+	if (dist < max_dist) {
+		Info_SetButton(
+			a.buytile,
+			quota_any + " left",
+			price_any,
+			fcn_any,
+			NetCoins_Format(price_any)
+		);
+	} else if (max_dist < Infinity) {
+		Info_SetButton(
+			a.buytile,
+			"Not by garden",
+			price_any,
+			null,
+			NetCoins_Format(price_any)
+		);
+	} else {
+		// no gardens at all
+		console.log("Make a garden!")
+		Info_HideButton(a.buytile);
+	}
 
 	// non-applicable tiles
 	Info_HideButton(a.edittile);
