@@ -6,6 +6,13 @@
 	<meta name="descripton" content="Showcase your indie website in an interactive landscape. Plant your garden today!" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<link rel="stylesheet" type="text/css" href="/static/style.css" />
+	<!-- javascript stuff. todo: convert to js modules -->
+	<script src="https://d3js.org/d3-dsv.v2.min.js" defer></script>
+	<script src="https://d3js.org/d3-fetch.v2.min.js" defer></script>
+	<script src="/static/scripts/garden.js" defer></script>
+	<script src="/static/scripts/map.js" defer></script>
+	<script src="/static/scripts/accounting.js" defer></script>
+	<script src="/static/scripts/ui.js" defer></script>
 </head>
 <body>
 	<nav>
@@ -23,14 +30,14 @@
 			<div class="sidebar" data-id="tileinfo">
 				<h1 data-id="name">Empty Plot</h1>
 				<canvas data-id="preview" width="128" height="128"></canvas>
-				<div data-id="owner">
-					<b>Owned By:</b> <a href="#"></a>
+				<div data-id="owners">
+					<b>Owned By:</b><div data-id="list"></div>
 				</div>
 				<div data-id="coords">
-					<b>Coords:</b> <span></span>
+					<b>Coords:</b><span></span>
 				</div>
 				<div data-id="url">
-					<b>URL:</b> <a href="#" target="_blank"></a>
+					<b>URL:</b><a href="#" target="_blank"></a>
 				</div>
 
 				<div class="fancybuttons">
@@ -38,7 +45,7 @@
 						<img src="/static/icons/core.png" alt="Claim Core Tile" />
 						<div class="name">Core Tile</div>
 						<div class="status"></div>
-						<a href="#" class="button buy">§ 30</a>
+						<a href="#" class="button buy"></a>
 					</div>
 					<div data-id="backdrop">
 						<img src="/static/icons/backdrop.png" alt="Unlock Backdrop Tile" />
@@ -49,20 +56,20 @@
 					<div data-id="buy">
 						<img src="/static/icons/buy.png" alt="Purchase Tile for Garden" />
 						<div class="name">Buy Tile</div>
-						<div class="status">wip</div>
-						<a href="#" class="button disabled">§ 15</a>
-					</div>
-					<div data-id="teleport">
-						<img src="/static/icons/teleport.png" alt="Buy Teleport Tile" />
-						<div class="name">Teleport</div>
-						<div class="status">wip</div>
-						<a href="#" class="button disabled">§ 15</a>
+						<div class="status"></div>
+						<a href="#" class="button buy"></a>
 					</div>
 					<div data-id="sell">
 						<img src="/static/icons/sell.png" alt="Sell Tile" />
 						<div class="name">Sell Tile</div>
-						<div class="status">wip</div>
-						<div class="button disabled">§ 15</div>
+						<div class="status"></div>
+						<div class="button sell"></div>
+					</div>
+					<div data-id="teleport">
+						<img src="/static/icons/teleport.png" alt="Buy Teleport Tile" />
+						<div class="name">Teleport</div>
+						<div class="status"></div>
+						<a href="#" class="button buy"></a>
 					</div>
 				</div>
 			</div>
@@ -109,9 +116,4 @@
 		</div>
 	</div>
 </body>
-<!-- javascript stuff -->
-<script src="https://d3js.org/d3-dsv.v2.min.js"></script>
-<script src="https://d3js.org/d3-fetch.v2.min.js"></script>
-<script src="/static/scripts/map.js"></script>
-<script src="/static/scripts/ui.js"></script>
 </html>

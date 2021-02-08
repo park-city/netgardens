@@ -1,5 +1,9 @@
 'use strict';
 
+// variables
+let SIDEBAR_ID = "";
+let USER = "invis";
+
 // list of map tilesets (temporary)
 const TILESETS = {
 	'central-park': 'static/tiles/central-park.png',
@@ -12,6 +16,273 @@ const TILEMAPS = {
 const GARDENSETS = {
 	'central-park': 'static/maps/testmap1_gardens.json',
 	'debug-park': 'static/maps/testmap1_gardens.json'
+}
+
+// Server-side getters/setters /////////////////////////////////////////////////
+// Get name of logged in user
+function User_GetName()
+{
+	return USER;
+}
+
+// Sidebars ////////////////////////////////////////////////////////////////////
+
+// Record where the info panel goes
+function Info_SetID(sidebars_id)
+{
+	SIDEBAR_ID = sidebars_id;
+	Info_Hide();
+}
+
+// Draw a tile to an info panel's preview
+function Info_RenderTile(canvas, x, y, garden_obj)
+{
+	if (!canvas.getContext) { return; }
+
+	// get tile from background position
+	// this is poorly coded but i don't care right now
+	while (x < 0) { x += MAP[0].length; }
+	while (y < 0) { y += MAP.length; }
+	x = x % MAP[0].length;
+	y = y % MAP.length;
+	const tileid = MAP[y][x];
+
+	const ctx = canvas.getContext('2d');
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	if (tileid % 2) {
+		Render_BG_Tile(ctx, 0, 0, tileid-1);
+		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid);
+	} else {
+		Render_BG_Tile(ctx, 0, 0, tileid);
+		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid+1);
+	}
+
+	// render any overlays or effects
+	if (garden_obj) {
+		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, garden_obj.tile);
+	}
+}
+// Set properties for a FancyButton
+function Info_SetButton(div, status, cost, action, btn_label)
+{
+	let button = div.querySelector(".button");
+	let status_elem = div.querySelector(".status");
+	div.classList.remove("hidden");
+
+	// set text
+	status_elem.innerText = status;
+	if (btn_label) {
+		button.innerText = btn_label;
+	}
+
+	// add event handler if applicable
+	if (NetCoins_Test(cost) && action) {
+		button.classList.remove("disabled");
+		button.onpointerup = action;
+	} else {
+		button.classList.add("disabled");
+		button.onpointerup = null;
+	}
+}
+
+// Hide a FancyButton
+function Info_HideButton(div)
+{
+	div.classList.add("hidden");
+}
+
+// get all the elements required for the info sidebar
+function Info_Show_GetElems()
+{
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
+
+	let name = infopanel.querySelector("[data-id='name']");
+	let url = infopanel.querySelector("[data-id='url'] a");
+	let owners = infopanel.querySelector("[data-id='owners'] [data-id='list']");
+
+	let coretile = infopanel.querySelector("[data-id='core']");
+	let edittile = infopanel.querySelector("[data-id='backdrop']");
+	let buytile = infopanel.querySelector("[data-id='buy']");
+	let teletile = infopanel.querySelector("[data-id='teleport']");
+	let selltile = infopanel.querySelector("[data-id='sell']");
+
+	return {
+		'sidebars': sidebars,
+		'infopanel': infopanel,
+		'name': name,
+		'url': url,
+		'owners': owners,
+		'coretile': coretile,
+		'edittile': edittile,
+		'buytile': buytile,
+		'teletile': teletile,
+		'selltile': selltile
+	};
+}
+
+// Update TileInfo panel for a tile somebody owns
+function Info_Show_OwnedTile(garden, tile)
+{
+	let a = Info_Show_GetElems();
+
+	// set name and owner
+	if (tile.name) {
+		a.name.innerText = tile.name;
+	} else {
+		a.name.innerText = garden.name;
+	}
+	a.owners.parentElement.classList.remove("hidden");
+	a.owners.innerHTML = "";
+	for (let owner of garden.owners) {
+		// todo: add profile pic too
+		let newrow = document.createElement("a");
+		newrow.innerText = owner;
+		newrow.href = "#";
+		a.owners.appendChild(newrow);
+	}
+
+	// set url if applicable
+	if (tile.url) {
+		a.url.parentElement.classList.remove("hidden");
+		a.url.innerText = tile.url;
+		a.url.href = tile.url;
+	} else {
+		a.url.parentElement.classList.add("hidden");
+	}
+
+	/// set buttons for owner ///
+	if (garden.owners.includes(User_GetName()))
+	{
+		// core tile
+		// todo: hook up to link editor
+		Info_SetButton(a.coretile, "Claimed", 0, null, "Edit Link");
+
+		// sell tile
+		let sellprice = Garden_GetTilePrice(tile);
+		Info_SetButton(
+			a.selltile, "", -sellprice, null, NetCoins_Format(sellprice)
+		);
+
+		// buy tile
+		Info_HideButton(a.buytile);
+
+		// backdrop
+		let gfxprice = Garden_GetTileAddonPrice("is_gfx");
+		if (tile.is_gfx) {
+			// todo: link to gfx editor
+			Info_SetButton(a.edittile, "Purchased", 0, null, "Edit GFX");
+		} else {
+			// todo: link to buy
+			Info_SetButton(a.edittile, "", gfxprice, null, NetCoins_Format(gfxprice));
+		}
+
+		// teleport
+		let teleprice = Garden_GetTileAddonPrice("is_tele");
+		if (tile.is_gfx) {
+			// todo: link to target editor
+			Info_SetButton(a.teletile, "Purchased", 0, null, "Set Target");
+		} else {
+			// todo: link to buy
+			Info_SetButton(a.teletile, "", teleprice, null, NetCoins_Format(teleprice));
+		}
+	} else {
+		Info_HideButton(a.buytile);
+		Info_HideButton(a.selltile);
+		Info_HideButton(a.edittile);
+		Info_HideButton(a.teletile);
+		Info_HideButton(a.coretile);
+	}
+
+	// Show buttons that related to website feed stuff
+
+}
+
+// Update TileInfo panel for a tile that nobody owns
+function Info_Show_VacantTile()
+{
+	let a = Info_Show_GetElems();
+
+	// unclaimed tile
+	a.name.innerText = "Unclaimed Tile";
+	a.url.parentElement.classList.add("hidden");
+	a.owners.parentElement.classList.add("hidden");
+
+	/// buttons and such ///
+	// core tile
+	let quota_core = Quota_CoreTile();
+	let price_core = Garden_GetTilePrice({is_core: true});
+	let fcn_core = (quota_core > 0) ? Garden_ClaimCoreTile : null;
+	Info_SetButton(
+		a.coretile,
+		quota_core + " left",
+		price_core,
+		fcn_core,
+		NetCoins_Format(price_core)
+	);
+
+	// buy tile
+	let quota_any = Quota_AnyTile();
+	let price_any = Garden_GetTilePrice({is_core: true});
+	let fcn_any = (quota_core > 0) ? Garden_ClaimTile : null;
+	Info_SetButton(
+		a.buytile,
+		quota_any + " left",
+		price_any,
+		fcn_any,
+		NetCoins_Format(price_any)
+	);
+
+	// non-applicable tiles
+	Info_HideButton(a.edittile);
+	Info_HideButton(a.selltile);
+	Info_HideButton(a.teletile);
+}
+
+// Populate an info panel
+function Info_Show()
+{
+	if (!SIDEBAR_ID) {return;}
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
+	let coords = infopanel.querySelector("[data-id='coords'] span");
+	let preview = infopanel.querySelector("[data-id='preview']");
+
+	// first, hide everything else
+	Info_Hide();
+	// then, unhide the parts we need
+	sidebars.classList.remove("hidden");
+	infopanel.classList.remove("hidden");
+
+	// Find the garden at the plot
+	let garden_obj = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
+
+	// List coords
+	coords.innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
+	// Render preview
+	Info_RenderTile(preview, SEL_XTILE, SEL_YTILE, garden_obj);
+
+	// Branch depending on whether tile is vacant or not
+	if (!garden_obj) {
+		Info_Show_VacantTile();
+	} else {
+		let garden = garden_obj.garden;
+		let tile = garden_obj.tile;
+		Info_Show_OwnedTile(garden, tile);
+	}
+}
+
+// Hide all sidebars and remove collapse button
+function Info_Hide()
+{
+	if (!SIDEBAR_ID) {return;}
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	// hide all sidebars
+	for(let e of sidebars.getElementsByClassName("sidebar")) {
+		e.classList.add("hidden");
+	}
+	// then hide the entire container
+	sidebars.classList.add("hidden");
 }
 
 function ParkSel_Show()
@@ -64,7 +335,7 @@ function NetCoins_UpdateDisplay(amount)
 {
 	let navbar = document.getElementsByTagName("nav")[0];
 	let netcoins = document.querySelector("[data-id='viewcoins']");
-	netcoins.innerText = "§ " + amount;
+	netcoins.innerText = NetCoins_Format(amount);
 }
 
 // init
@@ -111,8 +382,9 @@ document.addEventListener("DOMContentLoaded", (event) =>
 		TILESETS['central-park'],
 		TILEMAPS['central-park'],
 		GARDENSETS['central-park']
-	);
+	).then(() => {
+		// set demo autoscroll
+		Map_SetAutoScroll(0.5, 0.5);
+	})
 
-	// set autoscroll
-	Map_SetAutoScroll(0.5, 0.5);
 });

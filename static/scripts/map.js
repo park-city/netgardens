@@ -38,7 +38,6 @@ let SCROLLTO_Y = 0;
 let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
-let SIDEBAR_ID = "";
 let NETCOINS = 100;       // currency
 
 const COLORS = [
@@ -179,11 +178,6 @@ function Map_MakeRandom(w, h)
 	return map;
 }
 
-async function Garden_LoadFromJSON(url)
-{
-	return d3.json(url);
-}
-
 async function Map_LoadFromCSV(url)
 {
 	return d3.text(url)
@@ -241,20 +235,24 @@ function Map_CacheGfx(url)
 function Garden_CacheGfx(gardens)
 {
 	for (let garden of gardens) {
-		let img = new Image()
-		img.src = garden.img;
-		img.decode().then(() => {
-			return createImageBitmap(img, 0, 0, 88, 31);
-		}).then((bitmap) => {
-			OVERLAYS[garden.img] = bitmap;
-		});
+		for (let tile of garden.tiles) {
+			if (!tile.img) { continue; }
+			let img = new Image()
+			img.src = tile.img;
+			img.decode().then(() => {
+				return createImageBitmap(img, 0, 0, 88, 31);
+			}).then((bitmap) => {
+				OVERLAYS[tile.img] = bitmap;
+			});
+		}
 	}
 }
 
-function Render_FG_SiteLink_Single(ctx, x, y, img)
+function Render_FG_SiteLink_Single(ctx, x, y, tile)
 {
 	const w = 88 * SCALE;
 	const h = 31 * SCALE;
+	if (!tile.is_core) { return; } // only core tiles
 
 	// shadow
 	ctx.fillStyle = "#00000066";
@@ -274,7 +272,7 @@ function Render_FG_SiteLink_Single(ctx, x, y, img)
 	// outline
 	try {
 		// button gfx
-		ctx.drawImage(OVERLAYS[img], dx, dy);
+		ctx.drawImage(OVERLAYS[tile.img], dx, dy);
 	} catch (e) {
 		// placeholder when loading
 		ctx.fillStyle = "#B0E0E6";
@@ -286,16 +284,19 @@ function Render_FG_SiteLink_Single(ctx, x, y, img)
 function Render_FG_SiteLink(ctx)
 {
 	for (let garden of GARDENS) {
-		let yi = garden.y - 1;
-		let xi = Math.floor(garden.x / 2) * 2;
-		if (Math.floor(yi % 2) != 0) {
-			xi = Math.floor((garden.x + 1) / 2) * 2;
-		} 
-		let x = -X_POS + xi*X_TILESIZE;
-		let y = -Y_POS + yi*Y_TILESIZE/2;
-		if ((yi % 2) == 0) {x += X_TILESIZE;}
+		for (let tile of garden.tiles) {
+			// currently only supports floor orientation
+			let yi = tile.y - 1;
+			let xi = Math.floor(tile.x / 2) * 2;
+			if (Math.floor(yi % 2) != 0) {
+				xi = Math.floor((tile.x + 1) / 2) * 2;
+			}
+			let x = -X_POS + xi*X_TILESIZE;
+			let y = -Y_POS + yi*Y_TILESIZE/2;
+			if ((yi % 2) == 0) {x += X_TILESIZE;}
 
-		Render_FG_SiteLink_Single(ctx, x, y, garden.img);
+			Render_FG_SiteLink_Single(ctx, x, y, tile);
+		}
 	}
 }
 
@@ -305,14 +306,14 @@ function Render_FG_Sel(ctx)
 	let xi = Math.floor(SEL_XTILE / 2) * 2;
 	if (Math.floor(yi % 2) != 0) {
 		xi = Math.floor((SEL_XTILE + 1) / 2) * 2;
-	} 
+	}
 	let x = -X_POS + xi*X_TILESIZE;
 	let y = -Y_POS + yi*Y_TILESIZE/2;
 
 	// set no-tile colors
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 5;
-	
+
 	ctx.beginPath();
 	if ((yi % 2)) {
 		ctx.moveTo(x, y);
@@ -505,9 +506,9 @@ function Render_Step(timestamp)
 }
 
 // Load map data
-function Map_Init(tileset_url, tilemap_url, gardenset_url)
+async function Map_Init(tileset_url, tilemap_url, gardenset_url)
 {
-	Map_CacheGfx(tileset_url)
+	return Map_CacheGfx(tileset_url)
 	.then(() => {
 		return Garden_LoadFromJSON(gardenset_url);
 	})
@@ -522,175 +523,6 @@ function Map_Init(tileset_url, tilemap_url, gardenset_url)
 		X_POS = 0;
 		Y_POS = 0;
 	});
-}
-
-function Garden_GetAtTile(x, y)
-{
-	for(let garden of GARDENS) {
-		if (garden.x == x && garden.y == y) { return garden; }
-		if (garden.x == (x-1) && garden.y == y) { return garden; }
-	}
-	return null;
-}
-
-// Record where the info panel goes
-function Info_SetID(sidebars_id)
-{
-	SIDEBAR_ID = sidebars_id;
-	Info_Hide();
-}
-
-// Draw a tile to an info panel's preview
-function Info_RenderTile(canvas, x, y, garden)
-{
-	// this is bad
-	while (x < 0) { x += MAP[0].length; }
-	while (y < 0) { y += MAP.length; }
-	x = x % MAP[0].length;
-	y = y % MAP.length;
-
-	const tileid = MAP[y][x];
-	if (!canvas.getContext) { return; }
-	const ctx = canvas.getContext('2d');
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	if (tileid % 2) {
-		Render_BG_Tile(ctx, 0, 0, tileid-1);
-		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid);
-	} else {
-		Render_BG_Tile(ctx, 0, 0, tileid);
-		Render_BG_Tile(ctx, X_TILESIZE, 0, tileid+1);
-	}
-
-	if (garden && garden.img) {
-		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, garden.img);
-	}
-}
-
-// Set properties for a FancyButton
-function Info_SetButton(div, status, cost, action)
-{
-	let button = div.querySelector(".button");
-	let status_elem = div.querySelector(".status");
-
-	status_elem.innerText = status;
-	button.innerText = "§ " + cost;
-	if (NetCoins_Test(cost) && action) {
-		button.classList.remove("disabled");
-		button.onpointerup = action;
-	} else {
-		button.classList.add("disabled");
-		button.onpointerup = null;
-	}
-}
-
-function Garden_ClaimTile()
-{
-	// temporary whatever
-	let newgarden = {
-		"name": "InvisibleUp",
-		"owner": "invis",
-		"x": SEL_XTILE,
-		"y": SEL_YTILE,
-		"url": "https://invisibleup.com/",
-		"img": "/static/88x31s/invis.gif"
-	}
-	GARDENS.push(newgarden);
-	NetCoins_Transaction(30);
-	Info_Show();
-}
-
-// Populate an info panel
-function Info_Show()
-{
-	if (!SIDEBAR_ID) {return;}
-
-	let sidebars = document.getElementById(SIDEBAR_ID);
-	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
-
-	let name = infopanel.querySelector("[data-id='name']");
-	let preview = infopanel.querySelector("[data-id='preview']");
-	let coords = infopanel.querySelector("[data-id='coords'] span");
-	let url = infopanel.querySelector("[data-id='url'] a");
-	let owner = infopanel.querySelector("[data-id='owner'] a");
-
-	let coretile = infopanel.querySelector("[data-id='core']");
-	let edittile = infopanel.querySelector("[data-id='backdrop']");
-	let buytile = infopanel.querySelector("[data-id='buy']");
-	let teletile = infopanel.querySelector("[data-id='teleport']");
-
-	// first, hide everything else
-	Info_Hide();
-	// then, unhide the parts we need
-	sidebars.classList.remove("hidden");
-	infopanel.classList.remove("hidden");
-
-	// Find the garden at the plot
-	let garden = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
-
-	// List coords
-	coords.innerText = "(" + SEL_XTILE + " , " + SEL_YTILE + ")";
-	// Render preview
-	Info_RenderTile(preview, SEL_XTILE, SEL_YTILE, garden);
-
-	if (!garden) {
-		// unclaimed tile
-		name.innerText = "Unclaimed Tile";
-		url.parentElement.classList.add("hidden");
-		owner.parentElement.classList.add("hidden");
-
-		Info_SetButton(coretile, "0/1 claimed", 30, Garden_ClaimTile);
-	} else {
-		// core tile
-		name.innerText = garden.name;
-
-		url.parentElement.classList.remove("hidden");
-		url.innerText = garden.url;
-		url.href = garden.url;
-
-		owner.parentElement.classList.remove("hidden");
-		owner.innerText = garden.owner;
-		Info_SetButton(coretile, "Claimed", 30, null);
-	}
-}
-
-// Hide all sidebars and remove collapse button
-function Info_Hide()
-{
-	if (!SIDEBAR_ID) {return;}
-	let sidebars = document.getElementById(SIDEBAR_ID);
-	// hide all sidebars
-	for(let e of sidebars.getElementsByClassName("sidebar")) {
-		e.classList.add("hidden");
-	}
-	// then hide the entire container
-	sidebars.classList.add("hidden");
-}
-
-// Return the number of "credits" or coins or whatever
-// this should query the database
-function NetCoins_Query()
-{
-	return NETCOINS;
-}
-
-// Determine if some item can be purchased
-// "delta" should be a server-side lookup table
-function NetCoins_Test(delta)
-{
-	return ((NetCoins_Query() - delta) >= 0);
-}
-
-// Do a transaction
-// this should be server-side
-function NetCoins_Transaction(delta)
-{
-	if ((NETCOINS - delta) < 0) { 
-		return false; 
-	} else {
-		NETCOINS -= delta;
-		NetCoins_UpdateDisplay(NetCoins_Query());
-		return true;
-	}
 }
 
 function Render_Init()

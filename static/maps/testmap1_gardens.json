@@ -1,17 +1,50 @@
 [
 	{
-		"name": "InvisibleUp",
-		"owner": "invis",
-		"x": 12,
-		"y": 5,
-		"url": "https://invisibleup.com/",
-		"img": "/static/88x31s/invis.gif"
+		"name": "InvisibleUp's Garden",
+		"owners": ["invis"],
+		"tiles": [
+			{
+				"name": "InvisibleUp",
+				"x": 12,
+				"y": 5,
+				"orient": 0,
+				"is_core": true,
+				"is_gfx": true,
+				"url": "https://invisibleup.com/",
+				"img": "/static/88x31s/invis.gif"
+			}, {
+				"x": 11,
+				"y": 6,
+				"orient": 0,
+				"is_gfx": true
+			}, {
+				"x": 13,
+				"y": 6,
+				"orient": 0
+			}, {
+				"x": 12,
+				"y": 7,
+				"orient": 0,
+				"is_gfx": true,
+				"is_tele": true,
+				"park": "debug-park",
+				"dx": 16,
+				"dy": 9
+			}
+		]
 	}, {
-		"name": "Park City",
-		"owner": "invis",
-		"x": 16,
-		"y": 9,
-		"url": "https://park-city.club/",
-		"img": "/static/88x31s/parkcity.gif"
+		"name": "Park City's Garden",
+		"owners": ["sprite", "exo"],
+		"tiles": [
+			{
+				"name": "Park City",
+				"x": 16,
+				"y": 9,
+				"orient": 0,
+				"is_core": true,
+				"url": "https://park-city.club/",
+				"img": "/static/88x31s/parkcity.gif"
+			}
+		]
 	}
 ]

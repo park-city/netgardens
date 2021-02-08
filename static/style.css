@@ -43,8 +43,24 @@ body {
 	display: block;
 }
 .sidebar > div > b {
-	width: 100px;
+	width: 120px;
 	display: inline-block;
+}
+
+/* owner list is a little wacky */
+.sidebar[data-id='tileinfo'] [data-id='owners'] {
+	display: flex;
+}
+.sidebar[data-id='tileinfo'] [data-id='owners'] [data-id='list'] {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+}
+.sidebar[data-id='tileinfo'] [data-id='owners'] [data-id='list'] a {
+	margin-bottom: 4px;
+}
+.sidebar[data-id='tileinfo'] [data-id='owners'] [data-id='list'] a:last-child {
+	margin-bottom: 0;
 }
 
 /* sidebar collapse */
@@ -68,6 +84,7 @@ body {
 .fancybuttons {
 	display: flex;
 	flex-wrap: wrap;
+	justify-content: space-between;
 }
 .fancybuttons div {
 	margin-top: 0;
@@ -77,9 +94,6 @@ body {
 	text-align: center;
 	margin-top: 32px;
 	width: calc(50% - 16px);
-}
-.fancybuttons > div:not(.hidden):nth-child(2n) {
-	margin-left: 16px;
 }
 .fancybuttons > div img {
 	width: 72px;
