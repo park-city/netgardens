@@ -81,10 +81,6 @@ body {
 .fancybuttons > div:not(.hidden):nth-child(2n) {
 	margin-left: 16px;
 }
-.fancybuttons.wide > div {
-	width: 100%;
-	margin-left: unset;
-}
 .fancybuttons > div img {
 	width: 72px;
 	height: 72px;
@@ -124,6 +120,7 @@ body {
 	margin-top: 1ex;
 	color: black;
 	text-decoration: none;
+	text-align: center;
 }
 .button.buy {
 	background: #FFDD36;
@@ -140,6 +137,40 @@ body {
 	background: #999;
 	color: #666;
 	cursor: default;
+}
+
+/* Sidebar lists */
+.fancylist {
+	display: flex;
+	flex-direction: column;
+}
+.fancylist > div {
+	display: grid;
+	font-size: 14px;
+	align-items: center;
+	grid-auto-columns: 120px auto;
+}
+.fancylist > div img {
+	grid-row: 1 / 3;
+	grid-column: 1;
+	width: 72px;
+	height: 72px;
+	margin: auto;
+}
+.fancylist > div .button {
+	grid-row: 3;
+	grid-column: 1;
+	width: 80px;
+}
+.fancylist > div .name {
+	grid-row: 1;
+	grid-column: 2;
+	font-size: 21px;
+	text-align: center;
+}
+.fancylist .desc {
+	grid-row: 2 / 4;
+	grid-column: 2;
 }
 
 /* generated map */

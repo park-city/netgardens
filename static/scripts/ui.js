@@ -32,7 +32,7 @@ function ParkSel_Register()
 {
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
-	let parks = sidebars.querySelector(".sidebar[data-id='parksel'] > .fancybuttons").children;
+	let parks = sidebars.querySelector(".sidebar[data-id='parksel'] > .fancylist").children;
 	let nav_parksel = document.querySelector("nav a[data-id='parksel']");
 
 	for (let park of parks) {
