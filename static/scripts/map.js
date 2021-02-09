@@ -39,6 +39,7 @@ let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
 let GARDEN_OVERLAY = false;
+let DEBUG_OVERLAY = false;
 
 const COLORS = [
 	"#000022",
@@ -103,6 +104,34 @@ function getRandomInt(min, max) {
 function distance(x1, y1, x2, y2)
 {
 	return Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+}
+
+// Autoscroll tick
+function Map_DoAutoScroll(t)
+{
+	if (AUTOSCROLL == false) { return; }
+	X_POS += AUTOSCROLL_DX * t;
+	Y_POS += AUTOSCROLL_DY * t;
+}
+
+// Set autoscroll speed
+function Map_SetAutoScroll(dx, dy)
+{
+	AUTOSCROLL = (dx != 0 && dy != 0);
+	AUTOSCROLL_DX = dx;
+	AUTOSCROLL_DY = dy;
+}
+
+// Toggle garden overlay flag and return new value
+function Garden_ToggleOverlay()
+{
+	GARDEN_OVERLAY = !GARDEN_OVERLAY;
+	return GARDEN_OVERLAY;
+}
+// Get current value of garden overlay flag
+function Garden_OverlayActive()
+{
+	return GARDEN_OVERLAY;
 }
 
 // Determine which tile a given mouse coord falls under
@@ -254,11 +283,9 @@ function Garden_CacheGfx(gardens)
 	}
 }
 
-function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
+// Render ownership overlay for a single tile
+function Render_FG_Overlay_Single(ctx, x, y, tile, color)
 {
-	const w = 88 * SCALE;
-	const h = 31 * SCALE;
-
 	// garden overlay
 	if (GARDEN_OVERLAY && color) {
 		let color_alpha = d3.color(color);
@@ -268,14 +295,40 @@ function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
 		Render_FG_TileShape(ctx, x, y, tile.orient, 1);
 	}
 
-	// special-case tele tiles with fancy border
+	// special overlay for teleport tiles
 	if (tile.is_tele) {
 		ctx.fillStyle = "transparent";
 		ctx.strokeStyle = "gold"; // test
-		ctx.lineWidth = 8;
-		Render_FG_TileShape(ctx, x, y, tile.orient, 1);
-		return;
+		ctx.lineWidth = 3;
+		Render_FG_TileEllipse(ctx, x, y, tile.orient);
 	}
+}
+
+// Render tile ownership overlay
+function Render_FG_Overlay(ctx)
+{
+	for (let garden of GARDENS) {
+		for (let tile of garden.tiles) {
+			// currently only supports floor orientation
+			let yi = tile.y - 1;
+			let xi = Math.floor(tile.x / 2) * 2;
+			if (Math.floor(yi % 2) != 0) {
+				xi = Math.floor((tile.x + 1) / 2) * 2;
+			}
+			let x = -X_POS + xi*X_TILESIZE;
+			let y = -Y_POS + yi*Y_TILESIZE/2;
+			if ((yi % 2) == 0) {x += X_TILESIZE;}
+
+			Render_FG_Overlay_Single(ctx, x, y, tile, garden.color);
+		}
+	}
+}
+
+// Render 88x31 button for a single tile
+function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
+{
+	const w = 88 * SCALE;
+	const h = 31 * SCALE;
 
 	// only continue for core tiles
 	if (!tile.is_core) { return; }
@@ -307,10 +360,12 @@ function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
 	}
 }
 
+// Render all applicable 88x31 buttons
 function Render_FG_SiteLink(ctx)
 {
 	for (let garden of GARDENS) {
 		for (let tile of garden.tiles) {
+			if (!tile.is_core) { continue; }
 			// currently only supports floor orientation
 			let yi = tile.y - 1;
 			let xi = Math.floor(tile.x / 2) * 2;
@@ -346,8 +401,24 @@ function Render_FG_TileShape(ctx, x, y, orient, evenrow)
 	ctx.stroke();
 }
 
+// render a circle (well, an oval) at the given x/y coords
+function Render_FG_TileEllipse(ctx, x, y, orient)
+{
+	let scalar = 0.65;
+	ctx.beginPath();
+	ctx.ellipse(
+		x, y+(Y_TILESIZE/2),
+		X_TILESIZE*scalar, Y_TILESIZE*scalar/2, 0,
+		0, 2*Math.PI
+	)
+	ctx.fill();
+	ctx.stroke();
+}
+
+// Render the selection cursor
 function Render_FG_Sel(ctx)
 {
+	if (!SEL_VISIBLE) { return; }
 	let yi = SEL_YTILE - 1;
 	let xi = Math.floor(SEL_XTILE / 2) * 2;
 	if (Math.floor(yi % 2) != 0) {
@@ -434,59 +505,38 @@ function Render_BG(ctx)
 	}
 }
 
-function Map_DoAutoScroll()
+// Render debug information
+function Render_FG_Debug(ctx, canvas, timestamp)
 {
-	if (AUTOSCROLL == false) { return; }
-	X_POS += AUTOSCROLL_DX;
-	Y_POS += AUTOSCROLL_DY;
-}
-
-function Map_SetAutoScroll(dx, dy)
-{
-	AUTOSCROLL = true;
-	AUTOSCROLL_DX = dx;
-	AUTOSCROLL_DY = dy;
-}
-
-// Toggle garden overlay flag and return new value
-function Garden_ToggleOverlay()
-{
-	GARDEN_OVERLAY = !GARDEN_OVERLAY;
-	return GARDEN_OVERLAY;
-}
-// Get current value of garden overlay flag
-function Garden_OverlayActive()
-{
-	return GARDEN_OVERLAY;
-}
-
-// thing to do every frame
-function Render_Step(timestamp)
-{
+	if (!DEBUG_OVERLAY) { return; }
 	// timestamp
-	let time = timestamp - TIME_START;
+	let x_pos = Math.floor(mod(X_POS, CANVAS_BG.width));
+	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG.height));
+	let fps = Math.round(1/((timestamp - TIME_LAST) / 1000));
 
-	// autoscroll
-	Map_DoAutoScroll();
+	ctx.fillStyle = 'black';
+	ctx.fillRect(0, 0, 160, 90); // 
+	ctx.fillRect(0, canvas.height - 30, 100, 30);
 
-	// primary canvas
-	const canvas = document.getElementById('mapcanvas');
-	if (!canvas.getContext) { return; }
-	const ctx = canvas.getContext('2d', {alpha: false});
+	ctx.font = '14px monospace';
+	ctx.fillStyle = 'white';
+	ctx.fillText('X:          ' + X_POS, 10, 20);
+	ctx.fillText('X % width:  ' + x_pos, 10, 40);
+	ctx.fillText('Y:          ' + Y_POS, 10, 60);
+	ctx.fillText('Y % height: ' + y_pos, 10, 80);
+	ctx.fillText("FPS: " + fps, 10, canvas.height - 10);
+}
 
-	if (BG_RERENDER) {
-		// draw background layers
-		ctx.clearRect(0, 0, CANVAS_BG.width, CANVAS_BG.height);
-		Render_BG(CTX_BG);
-	}
-
-	// blit background layer to composite canvas
+// blit background layer to composite canvas
+function Render_FG_CopyBG(ctx, canvas)
+{
 	ctx.globalCompositeOperation = 'source-over';
 	//ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
 
 	let x_pos = Math.floor(mod(X_POS, CANVAS_BG.width));
 	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG.height));
 
+	// bg copy positions
 	const x_off = [
 		x_pos,
 		x_pos - CANVAS_BG.width,
@@ -524,31 +574,41 @@ function Render_Step(timestamp)
 		9999999,
 		9999999
 	);
+}
 
-	// print current selection
-	if (SEL_VISIBLE) {
-		Render_FG_Sel(ctx);
-	}
+// thing to do every frame
+function Render_Step(timestamp)
+{
+	// this should be important for something
+	let frames = (timestamp - TIME_LAST) / (1000 / 60);
+	// autoscroll
+	Map_DoAutoScroll(frames);
 
+	// primary canvas
+	const canvas = document.getElementById('mapcanvas');
+	if (!canvas.getContext) { return; }
+	const ctx = canvas.getContext('2d', {alpha: false});
+
+	// Copy BG to screen
+	Render_FG_CopyBG(ctx, canvas);
+	// Render tile ownership overlay
+	Render_FG_Overlay(ctx);
+	// Render current selection
+	Render_FG_Sel(ctx);
 	// Render all visible 88x31 buttons
 	Render_FG_SiteLink(ctx);
+	// print some debug info if applicable
+	Render_FG_Debug(ctx, canvas, timestamp);
 
-	// print some debug info
-	/*ctx.fillRect(0, 0, 160, 90);
-	ctx.fillRect(canvas.width - 100, 0, 100, 30);
-	ctx.font = '14px monospace';
-	ctx.fillStyle = 'white';
-	ctx.fillText('X:          ' + X_POS, 10, 20);
-	ctx.fillText('X % width:  ' + x_pos, 10, 40);
-	ctx.fillText('Y:          ' + Y_POS, 10, 60);
-	ctx.fillText('Y % height: ' + y_pos, 10, 80);
-
-	// print fps too
-	let fps = Math.round(1/((timestamp - TIME_LAST) / 1000));
-	ctx.fillText("FPS: " + fps, canvas.width - 80, 20);*/
-
+	// request next frame
 	TIME_LAST = timestamp;
 	window.requestAnimationFrame(Render_Step);
+
+	// redraw background if requested (outside of vsync)
+	if (BG_RERENDER) {
+		ctx.clearRect(0, 0, CANVAS_BG.width, CANVAS_BG.height);
+		Render_BG(CTX_BG);
+	}
 }
 
 // Load map data

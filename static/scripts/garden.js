@@ -39,8 +39,8 @@ function Gardens_SortDistance(gardenlist)
 		let a_dist = a.tiles.map(v => distance(v.x, v.y, x, y));
 		let b_dist = b.tiles.map(v => distance(v.x, v.y, x, y));
 		// figure out which one is the smallest
-		let a_min = Math.min(...a);
-		let b_min = Math.min(...b);
+		let a_min = Math.min(...a_dist);
+		let b_min = Math.min(...b_dist);
 		return a_min - b_min;
 	});
 }
@@ -81,8 +81,7 @@ function Garden_ClaimTile()
 			"y": y,
 			"orient": 0
 	};
-	// Find closest owned garden (should be valid)
-	let tgt_garden = Garden_GetNearestOwned();
+
 	// Take away from quota
 	let quota_okay = Quota_Change_AnyTile(-1);
 	if (!quota_okay) { return; }
@@ -90,7 +89,8 @@ function Garden_ClaimTile()
 	let cost = Garden_GetTilePrice(newtile);
 	NetCoins_Transaction(cost);
 
-	// Add garden to list
+	// Add tile to closest owned garden (should be valid)
+	let tgt_garden = Garden_GetNearestOwned();
 	tgt_garden.tiles.push(newtile);
 
 	// Refresh info panel
@@ -104,6 +104,7 @@ function Garden_ClaimCoreTile()
 	const newgarden = {
 		"owners": [user],
 		"name": "New Garden",
+		"color": d3.hsl(getRandomInt(0, 360), 80, 80),
 		"tiles": [{
 			"x": SEL_XTILE,
 			"y": SEL_YTILE,
@@ -112,7 +113,17 @@ function Garden_ClaimCoreTile()
 			"url": "https://netgardens.online"
 		}]
 	}
+
+	// Take away from quota
+	let quota_okay = Quota_Change_CoreTile(-1);
+	if (!quota_okay) { return; }
+	// purchase plot
+	let cost = Garden_GetTileAddonPrice("is_core");
+	NetCoins_Transaction(cost);
+
+	// Add to garden list
 	GARDENS.push(newgarden);
-	NetCoins_Transaction(30);
+
+	// Refresh info panel
 	Info_Show();
 }

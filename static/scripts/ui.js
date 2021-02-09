@@ -59,6 +59,7 @@ function Info_RenderTile(canvas, x, y, garden_obj)
 
 	// render any overlays or effects
 	if (garden_obj) {
+		Render_FG_Overlay_Single(ctx, X_TILESIZE, Y_TILESIZE, garden_obj.tile);
 		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, garden_obj.tile);
 	}
 }
@@ -73,6 +74,10 @@ function Info_SetButton(div, status, cost, action, btn_label)
 	status_elem.innerText = status;
 	if (btn_label) {
 		button.innerText = btn_label;
+	}
+	// display "out of funds" message if applicable
+	if (!NetCoins_Test(cost)) {
+		status_elem.innerText = "Out of funds";
 	}
 
 	// add event handler if applicable
@@ -234,8 +239,8 @@ function Info_Show_VacantTile()
 
 	// buy tile
 	let quota_any = Quota_AnyTile();
-	let price_any = Garden_GetTilePrice({is_core: true});
-	let fcn_any = (quota_core > 0) ? Garden_ClaimTile : null;
+	let price_any = Garden_GetTilePrice({});
+	let fcn_any = (quota_any > 0) ? Garden_ClaimTile : null;
 	let dist = Garden_GetNearestOwned_Dist(User_GetName());
 	const max_dist = 2.5;
 	if (dist < max_dist) {
