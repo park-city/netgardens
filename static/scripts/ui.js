@@ -25,7 +25,7 @@ function User_GetName()
 	return USER;
 }
 
-// Sidebars ////////////////////////////////////////////////////////////////////
+// General Sidebar Helpers ////////////////////////////////////////////////////
 
 // Record where the info panel goes
 function Info_SetID(sidebars_id)
@@ -96,6 +96,26 @@ function Info_HideButton(div)
 	div.classList.add("hidden");
 }
 
+function Info_MakeOwnersLine(owners, element)
+{
+	for (let owner of owners) {
+		let newrow = document.createElement("div");
+
+		let img = document.createElement("img");
+		img.src = "/static/profpics/" + owner + ".png"; // temporary
+
+		let a = document.createElement("a");
+		a.innerText = owner;
+		a.href = "#";
+
+		newrow.appendChild(img);
+		newrow.appendChild(a);
+		element.appendChild(newrow);
+	}
+}
+
+// Tile Information Sidebar ///////////////////////////////////////////////////
+
 // get all the elements required for the info sidebar
 function Info_Show_GetElems()
 {
@@ -141,13 +161,7 @@ function Info_Show_OwnedTile(garden, tile)
 	}
 	a.owners.parentElement.classList.remove("hidden");
 	a.owners.innerHTML = "";
-	for (let owner of garden.owners) {
-		// todo: add profile pic too
-		let newrow = document.createElement("a");
-		newrow.innerText = owner;
-		newrow.href = "#";
-		a.owners.appendChild(newrow);
-	}
+	Info_MakeOwnersLine(garden.owners, a.owners);
 
 	// set url if applicable
 	if (tile.url) {
@@ -225,44 +239,49 @@ function Info_Show_VacantTile()
 	a.teletarget.parentElement.classList.add("hidden")
 
 	/// buttons and such ///
-	// core tile
-	let quota_core = Quota_CoreTile();
-	let price_core = Garden_GetTilePrice({is_core: true});
-	let fcn_core = (quota_core > 0) ? Garden_ClaimCoreTile : null;
-	Info_SetButton(
-		a.coretile,
-		quota_core + " left",
-		price_core,
-		fcn_core,
-		NetCoins_Format(price_core)
-	);
+	if (User_GetName()) {
+		// core tile
+		let quota_core = Quota_CoreTile();
+		let price_core = Garden_GetTilePrice({is_core: true});
+		let fcn_core = (quota_core > 0) ? Garden_ClaimCoreTile : null;
+		Info_SetButton(
+			a.coretile,
+			quota_core + " left",
+			price_core,
+			fcn_core,
+			NetCoins_Format(price_core)
+		);
 
-	// buy tile
-	let quota_any = Quota_AnyTile();
-	let price_any = Garden_GetTilePrice({});
-	let fcn_any = (quota_any > 0) ? Garden_ClaimTile : null;
-	let dist = Garden_GetNearestOwned_Dist(User_GetName());
-	const max_dist = 2.5;
-	if (dist < max_dist) {
-		Info_SetButton(
-			a.buytile,
-			quota_any + " left",
-			price_any,
-			fcn_any,
-			NetCoins_Format(price_any)
-		);
-	} else if (max_dist < Infinity) {
-		Info_SetButton(
-			a.buytile,
-			"Not by garden",
-			price_any,
-			null,
-			NetCoins_Format(price_any)
-		);
+		// buy tile
+		let quota_any = Quota_AnyTile();
+		let price_any = Garden_GetTilePrice({});
+		let fcn_any = (quota_any > 0) ? Garden_ClaimTile : null;
+		let dist = Garden_GetNearestOwned_Dist(User_GetName());
+		const max_dist = 2.5;
+		if (dist < max_dist) {
+			Info_SetButton(
+				a.buytile,
+				quota_any + " left",
+				price_any,
+				fcn_any,
+				NetCoins_Format(price_any)
+			);
+		} else if (max_dist < Infinity) {
+			Info_SetButton(
+				a.buytile,
+				"Not by garden",
+				price_any,
+				null,
+				NetCoins_Format(price_any)
+			);
+		} else {
+			// no gardens at all
+			console.log("Make a garden!")
+			Info_HideButton(a.buytile);
+		}
 	} else {
-		// no gardens at all
-		console.log("Make a garden!")
 		Info_HideButton(a.buytile);
+		Info_HideButton(a.coretile);
 	}
 
 	// non-applicable tiles
@@ -315,6 +334,11 @@ function Info_Hide()
 	}
 	// then hide the entire container
 	sidebars.classList.add("hidden");
+	// untick the popout things as well
+	let nav_sitelist = document.querySelector("nav a[data-id='browse']");
+	let nav_parksel = document.querySelector("nav a[data-id='parksel']");
+	nav_sitelist.classList.remove("active");
+	nav_parksel.classList.remove("active");
 }
 
 /// Park Selection Sidebar /////////////////////////////////////////////////////
@@ -383,7 +407,108 @@ function ParkSel_Register()
 	}
 }
 
-/// Main Navbar ////////////////////////////////////////////////////////////////
+// Get the currently active park's name
+function ParkSel_GetName()
+{
+	return document.querySelector("nav a[data-id='parksel']").innerText;
+}
+
+/// Browse List Sidebar ///////////////////////////////////////////////////////
+
+function SiteList_Show()
+{
+	if (!SIDEBAR_ID) {return;}
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	let infopanel = sidebars.querySelector("[data-id='sitelist']");
+	let nav_browse = document.querySelector("nav a[data-id='browse']");
+
+	// close if already open
+	if (nav_browse.classList.contains("active")) {
+		SiteList_Hide();
+		return;
+	}
+
+	// first, hide everything else
+	Info_Hide();
+	// then, unhide the parts we need
+	sidebars.classList.remove("hidden");
+	infopanel.classList.remove("hidden");
+
+	// set navbar button active
+	nav_browse.classList.add("active");
+
+	// populate the sitelist
+	SiteList_Populate()
+}
+
+function SiteList_Hide()
+{
+	let nav_sitelist = document.querySelector("nav a[data-id='browse']");
+	Info_Hide();
+	nav_sitelist.classList.remove("active");
+}
+
+// note: not sure how to disambug
+function SiteList_MakeEntry(garden, tile)
+{
+	// 88x31 button
+	let preview = document.createElement("canvas");
+	preview.width = 88;
+	preview.height = 31;
+	let ctx = preview.getContext('2d', {alpha: false});
+	Render_FG_SiteLink_Single_Raw(ctx, 0, 0, tile, garden.color);
+
+	// Site name
+	let title = document.createElement("div");
+	title.classList.add("name");
+	if (tile.name) {
+		title.innerText = tile.name;
+	} else {
+		title.innerText = garden.name;
+	}
+
+	// Site author(s)
+	let owners = document.createElement("div");
+	owners.classList.add("owners");
+	Info_MakeOwnersLine(garden.owners, owners);
+
+	// and bundle that into a row
+	let newrow = document.createElement("div");
+	newrow.appendChild(preview);
+	newrow.appendChild(title);
+	newrow.appendChild(owners);
+	return newrow;
+}
+
+// Populate the site list
+function SiteList_Populate()
+{
+	if (!SIDEBAR_ID) {return;}
+	let sidebars = document.getElementById(SIDEBAR_ID);
+	let infopanel = sidebars.querySelector("[data-id='sitelist']");
+	let parkname = infopanel.querySelector("[data-id='parkname']");
+	let list = infopanel.querySelector(".fancylist");
+
+	// Copy park name over
+	parkname.innerText = ParkSel_GetName();
+
+	// Get a list of nearby sites, sorted by distance from viewport
+	let center_tile = Coord_Lookup_Center();
+	let gardenlist = Gardens_SortDistance(null, center_tile.x, center_tile.y);
+
+	// And then for each garden, add that to the big list
+	list.innerHTML = "";
+	for (let garden of gardenlist) {
+		// only doing the first core tile for each park
+		// we might want a more bulletproof solution later
+		let tiles = garden.tiles.filter((v) => v.is_core);
+		if (!tiles) { continue; }
+		list.appendChild(SiteList_MakeEntry(garden, tiles[0]));
+	}
+
+}
+
+/// Main Navbar ///////////////////////////////////////////////////////////////
 
 function Nav_UpdateNetCoins()
 {
@@ -408,10 +533,37 @@ function Nav_ToggleOverlay()
 	}
 }
 
+// Update login thingy
+function Nav_UpdateLogin()
+{
+	let nav_login = document.querySelector("nav [data-id='login']")
+	let nav_login_img = nav_login.querySelector("img");
+	let nav_login_name = nav_login.querySelector("a");
+	let user = User_GetName();
+	if (user) {
+		nav_login_img.classList.remove("hidden");
+		nav_login_img.src = "/static/profpics/" + user + ".png";
+		nav_login_name.innerText = user;
+	} else {
+		nav_login_img.classList.add("hidden");
+		nav_login_name.innerText = "Log in";
+	}
+}
+
 // init
 document.addEventListener("DOMContentLoaded", (event) =>
 {
-	// set sidebar events
+	/// load map data (async) ///
+	Map_Init(
+		TILESETS['central-park'],
+		TILEMAPS['central-park'],
+		GARDENSETS['central-park']
+	).then(() => {
+		// set demo autoscroll
+		Map_SetAutoScroll(0.5, 0.5);
+	})
+
+	/// set sidebar events ///
 	Info_SetID("sidebars");
 
 	// collapsable sidebar(s)
@@ -460,17 +612,25 @@ document.addEventListener("DOMContentLoaded", (event) =>
 		nav_overlay.classList.add("active");
 	}
 
+	// 📃: browse sites/gardens
+	let nav_browse = navbar.querySelector("[data-id='browse']");
+	nav_browse.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		SiteList_Show();
+	});
+
 	// netcoins: init value
 	Nav_UpdateNetCoins();
 
-	// load map data
-	Map_Init(
-		TILESETS['central-park'],
-		TILEMAPS['central-park'],
-		GARDENSETS['central-park']
-	).then(() => {
-		// set demo autoscroll
-		Map_SetAutoScroll(0.5, 0.5);
+	// login: set user name and pic accordingly
+	Nav_UpdateLogin();
+	let nav_login = navbar.querySelector("[data-id='login']")
+	nav_login.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		// debugging logging in and out
+		if (!USER) { USER = "invis"; }
+		else { USER = null; }
+		Nav_UpdateLogin();
+		Info_Hide();
 	})
-
 });

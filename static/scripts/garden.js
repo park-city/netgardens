@@ -26,11 +26,11 @@ function Gardens_OwnedBy(user, gardenlist)
 }
 
 // sort gardens by distance from selection
-function Gardens_SortDistance(gardenlist)
+function Gardens_SortDistance(gardenlist, x, y)
 {
 	if (!gardenlist) {gardenlist = GARDENS;}
-	let y = SEL_YTILE;
-	let x = SEL_XTILE;
+	if (!x) { x = SEL_XTILE; }
+	if (!y) { y = SEL_YTILE; }
 	// if it's a right tile, test the left tile instead
 	if ((y % 2) ^ !(x % 2)) { x -= 1; }
 

@@ -35,7 +35,7 @@
 		]
 	}, {
 		"name": "Park City's Garden",
-		"owners": ["sprite", "exo"],
+		"owners": ["sprite", "exo", "roseknight", "fractal", "scoli"],
 		"color": "#1D1F55",
 		"tiles": [
 			{

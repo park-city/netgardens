@@ -185,6 +185,13 @@ function Coord_Lookup(x, y)
 	return {x: x_out, y: y_out};
 }
 
+// Get the tile at the center of the display
+function Coord_Lookup_Center()
+{
+	const canvas = document.getElementById('mapcanvas');
+	return Coord_Lookup(canvas.width/2, canvas.height/2);
+}
+
 // get an array of tiles to be rendered onto the screen
 // this is a big temporary hack
 function Map_MakeRandom(w, h)
@@ -324,6 +331,23 @@ function Render_FG_Overlay(ctx)
 	}
 }
 
+// Renders literally just the 88x31 button, and nothing else
+function Render_FG_SiteLink_Single_Raw(ctx, dx, dy, tile, color)
+{
+	const w = 88 * SCALE;
+	const h = 31 * SCALE;
+	try {
+		ctx.drawImage(OVERLAYS[tile.img], dx, dy);
+	} catch (e) {
+		// placeholder when loading
+		ctx.strokeStyle = "#000000";
+		ctx.lineWidth = 2;
+		ctx.fillStyle = color;
+		ctx.strokeRect(dx, dy, w, h);
+		ctx.fillRect(dx, dy, w, h);
+	}
+}
+
 // Render 88x31 button for a single tile
 function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
 {
@@ -343,21 +367,9 @@ function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
 	)
 
 	// button
-	ctx.strokeStyle = "#000000";
-	ctx.lineWidth = 2;
 	let dx = Math.floor(x - (w/2));
 	let dy = Math.floor(y - (h/2));
-
-	// outline
-	try {
-		// button gfx
-		ctx.drawImage(OVERLAYS[tile.img], dx, dy);
-	} catch (e) {
-		// placeholder when loading
-		ctx.fillStyle = "#B0E0E6";
-		ctx.strokeRect(dx, dy, w, h);
-		ctx.fillRect(dx, dy, w, h);
-	}
+	Render_FG_SiteLink_Single_Raw(ctx, dx, dy, tile, color);
 }
 
 // Render all applicable 88x31 buttons

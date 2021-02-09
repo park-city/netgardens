@@ -17,13 +17,16 @@
 </head>
 <body>
 	<nav>
-		<a href="#" data-id="logo">Netgardens<br />Online</span>
+		<a href="#" data-id="logo">Netgardens<br />Online</a>
 		<a href="#" data-id="parksel" title="Switch Park">Central Park</a>
 		<a href="#" data-id="overlay" title="View Garden Overlay">🔍</a>
-		<a href="#" data-id="browse" title="Browse" class="disabled">📃</a>
+		<a href="#" data-id="browse" title="Browse">📃</a>
 		<a href="#" data-id="listfavs" title="Bookmarks" class="disabled">❤️</a>
-		<a href="#" data-id="viewcoins"></a>
-		<a href="#" data-id="login" class="disabled">Login</a>
+		<span data-id="viewcoins"></span>
+		<span data-id="login">
+			<img src="static/profpics/invis.png">
+			<a href="#">{user}</a>
+		</span>
 	</nav>
 
 	<div class="container">
@@ -31,17 +34,19 @@
 			<div class="sidebar" data-id="tileinfo">
 				<h1 data-id="name">Empty Plot</h1>
 				<canvas data-id="preview" width="128" height="128"></canvas>
-				<div data-id="owners">
-					<b>Owned By:</b><div data-id="list"></div>
-				</div>
-				<div data-id="coords">
-					<b>Coords:</b><span></span>
-				</div>
-				<div data-id="url">
-					<b>URL:</b><a href="#" target="_blank"></a>
-				</div>
-				<div data-id="teletarget">
-					<b>Teleport:</b><a href="#"></a>
+				<div class="properties">
+					<div data-id="owners">
+						<b>Created By:</b><span data-id="list"></span>
+					</div>
+					<div data-id="coords">
+						<b>Coords:</b><span></span>
+					</div>
+					<div data-id="url">
+						<b>URL:</b><a href="#" target="_blank"></a>
+					</div>
+					<div data-id="teletarget">
+						<b>Teleport:</b><a href="#"></a>
+					</div>
 				</div>
 
 				<div class="fancybuttons">
@@ -98,6 +103,12 @@
 						<div class="desc">test world please ignore</div>
 						<a href="#" class="button action">Visit</a>
 					</div>
+				</div>
+			</div>
+			<div class="sidebar" data-id="sitelist">
+				<h1>Gardens in<br /><span data-id="parkname">{parkname}</span></h1>
+				<div class="fancylist striped">
+
 				</div>
 			</div>
 			<div class="collapsebtn"></div>
