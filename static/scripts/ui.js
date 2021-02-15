@@ -119,9 +119,9 @@ function Info_Show_GetElems()
 	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
 
 	let name = infopanel.querySelector("[data-id='name']");
-	let url = infopanel.querySelector("[data-id='url'] a");
-	let owners = infopanel.querySelector("[data-id='owners'] [data-id='list']");
-	let teletarget = infopanel.querySelector("[data-id='teletarget'] a");
+	let url = infopanel.querySelector("[data-id='url'] .content");
+	let owners = infopanel.querySelector("[data-id='owners'] .content");
+	let teletarget = infopanel.querySelector("[data-id='teletarget'] .content");
 
 	let coretile = infopanel.querySelector("[data-id='core']");
 	let edittile = infopanel.querySelector("[data-id='backdrop']");
@@ -292,7 +292,7 @@ function Info_Show()
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
 	let infopanel = sidebars.querySelector("[data-id='tileinfo']");
-	let coords = infopanel.querySelector("[data-id='coords'] span");
+	let coords = infopanel.querySelector("[data-id='coords'] .content");
 	let preview = infopanel.querySelector("[data-id='preview']");
 
 	// first, hide everything else
@@ -393,6 +393,8 @@ function ParkSel_MakeItem(park, id)
 	row.dataset.id = id;
 
 	let icon = document.createElement("img");
+	icon.classList.add("icon");
+	icon.classList.add("tile");
 	icon.src = park.icon;
 	row.appendChild(icon);
 
@@ -415,21 +417,27 @@ function ParkSel_MakeItem(park, id)
 	row.appendChild(btn);
 
 	let credits = document.createElement("div")
-	credits.classList.add("credits");
+	credits.classList.add("properties");
+
+	let credits_artists_title = document.createElement("div");
+	credits_artists_title.classList.add("header");
+	credits_artists_title.innerText = "Artists: ";
+	credits.appendChild(credits_artists_title);
 
 	let credits_artists = document.createElement("div");
 	credits_artists.classList.add("owners");
-	let credits_artists_title = document.createElement("span");
-	credits_artists_title.innerText = "Artists: ";
-	credits.appendChild(credits_artists_title);
+	credits_artists.classList.add("content");
 	Info_MakeOwnersLine(park.artists, credits_artists);
 	credits.appendChild(credits_artists);
 
-	let credits_mappers = document.createElement("div");
-	credits_mappers.classList.add("owners");
-	let credits_mappers_title = document.createElement("span");
+	let credits_mappers_title = document.createElement("div");
+	credits_mappers_title.classList.add("header");
 	credits_mappers_title.innerText = "Mappers: ";
 	credits.appendChild(credits_mappers_title);
+
+	let credits_mappers = document.createElement("div");
+	credits_mappers.classList.add("owners");
+	credits_mappers.classList.add("content");
 	Info_MakeOwnersLine(park.mappers, credits_mappers);
 	credits.appendChild(credits_mappers);
 
@@ -498,6 +506,7 @@ function SiteList_MakeEntry(garden, tile)
 	let preview = document.createElement("canvas");
 	preview.width = 88;
 	preview.height = 31;
+	preview.classList.add("icon");
 	let ctx = preview.getContext('2d', {alpha: false});
 	Render_FG_SiteLink_Single_Raw(ctx, 0, 0, tile, garden.color);
 
@@ -635,7 +644,7 @@ document.addEventListener("DOMContentLoaded", (event) =>
 
 	// logo: show splash screen
 	let nav_ngo = navbar.querySelector("[data-id='logo']");
-	nav_ngo.addEventListener('pointerup', (event) => {
+	nav_ngo.addEventListener('pointerup', (e) => {
 		e.preventDefault();
 		splash.classList.remove('hidden');
 	});

@@ -27,9 +27,6 @@ body {
 	box-sizing: border-box;
 	height: 100vh;
 }
-.sidebar div {
-	margin-top: 1ex;
-}
 .sidebar button, .sidebar label {
 	font-size: 16pt;
 	width: 20ex;
@@ -42,50 +39,6 @@ body {
 .sidebar canvas {
 	margin: auto;
 	display: block;
-}
-
-/* Properties list is weird */
-.sidebar .properties {
-	display: table;
-}
-.sidebar .properties > div {
-	display: table-row;
-	height: 32px;
-}
-.sidebar .properties > div > b {
-	display: table-cell;
-	min-width: 120px;
-	vertical-align: top;
-}
-.sidebar .properties > div > a,
-.sidebar .properties > div > span {
-	display: table-cell;
-	max-width: 240px;
-}
-
-/* owner list is a little wacky */
-.sidebar[data-id='tileinfo'] [data-id='owners'] b {
-	padding-top: 6px;
-}
-.sidebar[data-id='tileinfo'] [data-id='owners'] [data-id='list'] {
-	display: inline-flex;
-	margin: 0;
-	flex-wrap: nowrap;
-	overflow-x: auto;
-	padding-bottom: 6px;
-}
-.sidebar[data-id='tileinfo'] [data-id='owners'] [data-id='list'] div {
-	display: flex;
-	margin: 0;
-	margin-right: 16px;
-	align-items: center;
-}
-.sidebar[data-id='tileinfo'] [data-id='owners'] [data-id='list'] div > img {
-	/* profile pic */
-	width: 32px;
-	height: 32px;
-	border-radius: 100%;
-	margin-right: 4px;
 }
 
 /* sidebar collapse */
@@ -178,6 +131,31 @@ body {
 	cursor: default;
 }
 
+/* list of users */
+.owners {
+	font-size: 18px;
+	margin: 0;
+
+	display: inline-flex;
+	max-width: 240px;
+	/*flex-wrap: nowrap;
+	overflow-x: auto;*/
+	flex-wrap: wrap;
+}
+.owners > div {
+	display: inline-flex;
+	align-items: center;
+	margin-right: 16px;
+	margin-top: 0;
+}
+.owners > div > img {
+	width: 32px;
+	height: 32px;
+	border-radius: 4px;
+	margin: 4px;
+	margin-left: 0;
+}
+
 /* Sidebar lists */
 .fancylist {
 	display: flex;
@@ -192,17 +170,15 @@ body {
 	padding-bottom: 8px;
 	margin: 0;
 }
-.fancylist > div img {
+.fancylist > div .icon {
 	grid-row: 1 / 3;
 	grid-column: 1;
-	width: 72px;
-	height: 72px;
 	margin: auto;
 }
-.fancylist > div canvas {
-	grid-row: 1;
-	grid-column: 1;
-	margin: auto;
+.fancylist > div .icon.tile {
+	/* tile preview for parksel */
+	width: 72px;
+	height: 72px;
 }
 .fancylist > div .button {
 	grid-row: 3;
@@ -216,58 +192,41 @@ body {
 	margin: 0;
 	font-weight: bold;
 }
-/* pick one? */
 .fancylist > div .desc {
 	grid-row: 2 / 4;
 	grid-column: 2;
 	font-size: 18px;
 }
-.fancylist > div .owners {
-	grid-row: 2;
-	grid-column: 2;
-	font-size: 18px;
-	margin: 0;
-
-	display: inline-flex;
-	max-width: 240px;
-	flex-wrap: nowrap;
-	overflow-x: auto;
-}
-.fancylist > div .owners > div {
-	display: inline-flex;
-	align-items: center;
-	margin-right: 16px;
-	margin-top: 0;
-}
-.fancylist > div .owners > div > img {
-	width: 32px;
-	height: 32px;
-	border-radius: 4px;
-	margin-right: 4px;
-}
-.fancylist > div > .credits {
-	display: grid;
-	grid-auto-columns: 120px auto;
+.fancylist .properties {
 	grid-column: 1 / 3;
-	align-items: center;
-	row-gap: 1ex;
 }
-.fancylist > div > .credits > span {
-	grid-row: auto;
-	grid-column: 1;
-	font-size: 18px;
+.fancylist .properties .header {
 	width: 80px;
-	margin: auto;
-}
-.fancylist > div > .credits > div.owners {
-	grid-row: auto;
-	grid-column: 2;
 }
 .fancylist.striped > div:nth-child(2n) {
 	background: #CCCCCC;
 }
 .fancylist.striped > div:nth-child(2n+1) {
 	background: #E5E5E5;
+}
+
+/* Properties lists */
+.properties {
+	display: grid;
+	grid-auto-columns: 120px auto;
+	grid-auto-rows: 40px;
+	align-items: center;
+}
+.properties .header {
+	grid-row: auto;
+	grid-column: 1;
+	font-size: 18px;
+	width: 100px;
+	margin: auto;
+}
+.properties .content {
+	grid-row: auto;
+	grid-column: 2;
 }
 
 /* generated map */
