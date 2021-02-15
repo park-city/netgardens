@@ -1,8 +1,14 @@
-async function Garden_LoadFromJSON(url)
+// Functions related to gardens/occupied tiles
+
+/// Helper functions for rendering, UI, etc. ///////////////////////////////////
+
+// Load a list of gardens from a JSON file
+async function Gardens_LoadFromJSON(url)
 {
 	return d3.json(url);
 }
 
+// Get the garden at a specific tile
 function Garden_GetAtTile(x, y)
 {
 	for (let garden of GARDENS) {
@@ -46,7 +52,7 @@ function Gardens_SortDistance(gardenlist, x, y)
 }
 
 // Get distance between selection and nearest garden
-function Garden_GetNearestOwned(user, gardenlist)
+function Gardens_GetNearestOwned(user, gardenlist)
 {
 	if (!user) { user = User_GetName(); }
 	let owned = Gardens_OwnedBy(user, gardenlist);
@@ -54,10 +60,11 @@ function Garden_GetNearestOwned(user, gardenlist)
 	return Gardens_SortDistance(owned)[0];
 }
 
-function Garden_GetNearestOwned_Dist(user, gardenlist)
+// Get nearest owned gardens, sorted by distance
+function Gardens_GetNearestOwned_Dist(user, gardenlist)
 {
 	if (!user) { user = User_GetName(); }
-	let nearest = Garden_GetNearestOwned(user, gardenlist);
+	let nearest = Gardens_GetNearestOwned(user, gardenlist);
 	if (!nearest) { return Infinity; }
 
 	let y = SEL_YTILE;
@@ -69,6 +76,26 @@ function Garden_GetNearestOwned_Dist(user, gardenlist)
 	return Math.min(...dists);
 }
 
+// Determine if a garden contains a link of some sort
+// yes, this looks a bit noobish. prevents returning undefined.
+function Garden_IsLinked(garden)
+{
+	if (!garden) { return false; }
+	if (garden.tile) {
+		if (garden.tile.is_core) { return true; }
+		if (garden.tile.is_tele) { return true; }
+		return false;
+	} else {
+		// bare tile
+		if (garden.is_core) { return true; }
+		if (garden.is_tele) { return true; }
+		return false;
+	}
+}
+
+/// User actions ///////////////////////////////////////////////////////////////
+
+// Claim a tile, adding it to the nearest garden
 function Garden_ClaimTile()
 {
 	let y = SEL_YTILE;
@@ -90,13 +117,14 @@ function Garden_ClaimTile()
 	NetCoins_Transaction(cost);
 
 	// Add tile to closest owned garden (should be valid)
-	let tgt_garden = Garden_GetNearestOwned();
+	let tgt_garden = Gardens_GetNearestOwned();
 	tgt_garden.tiles.push(newtile);
 
 	// Refresh info panel
 	Info_Show();
 }
 
+// Claim a "core tile", starting a new garden
 function Garden_ClaimCoreTile()
 {
 	// temporary whatever

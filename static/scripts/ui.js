@@ -256,7 +256,7 @@ function Info_Show_VacantTile()
 		let quota_any = Quota_AnyTile();
 		let price_any = Garden_GetTilePrice({});
 		let fcn_any = (quota_any > 0) ? Garden_ClaimTile : null;
-		let dist = Garden_GetNearestOwned_Dist(User_GetName());
+		let dist = Gardens_GetNearestOwned_Dist(User_GetName());
 		const max_dist = 2.5;
 		if (dist < max_dist) {
 			Info_SetButton(

@@ -17,51 +17,49 @@
     If not, see <https://www.gnu.org/licenses/>.
 */
 
-// lots of global variables
-let X_POS       = 0;
-let Y_POS       = 0;
-let X_TILESIZE  = 64;
-let Y_TILESIZE  = 64;     // tile gfx is twice this height
-let SCALE       = 1;
-let TIME_START  = 0;
-let TIME_LAST   = 0;
-let MOUSE_DOWN  = false;  // whether mouse is pressed
-let MOUSE_START = [];     // 'grab' coordinates when pressing mouse
-let MOUSE_LAST  = [0, 0]; // previous coordinates of mouse release
-let MOUSE_POS_START = [0, 0];
-let AUTOSCROLL  = false;
-let AUTOSCROLL_DX = 0;
-let AUTOSCROLL_DY = 0;
-let SCROLLTO = false;
-let SCROLLTO_X = 0;
-let SCROLLTO_Y = 0;
-let SEL_XTILE = 8;
-let SEL_YTILE = 4;
-let SEL_VISIBLE = false;
-let GARDEN_OVERLAY = false;
-let DEBUG_OVERLAY = true;
+/// Global Variables ///////////////////////////////////////////////////////////
+// this is probably bad form. whatever.
+// position
+let X_POS       = 0;          // Map scroll offset, X
+let Y_POS       = 0;          // Map scroll offset, Y
+// graphics sizes
+let X_TILESIZE  = 64;         // x size of tile footprint in tileset
+let Y_TILESIZE  = 64;         // y size of tile footprint in tileset (gfx are twice this height)
+let SCALE       = 1;          // Global graphics scalar
+// time
+let TIME_START  = 0;          // Time at program start
+let TIME_LAST   = 0;          // Time at last frame
+// mouse position
+let MOUSE_START = [];         // Client X/Y of mouse at time of grab
+let MOUSE_LAST  = [0, 0];     // Client X/Y of mouse relative to start
+let MOUSE_POS_START = [0, 0]; // X_POS/Y_POS at time of grab
+// autoscroll
+let AUTOSCROLL  = false;      // Autoscroll flag
+let AUTOSCROLL_DX = 0;        // Autoscroll speed, x
+let AUTOSCROLL_DY = 0;        // Autoscroll speed, y
+let SCROLLTO = false;         // Set true if autoscrolling to a tile
+let SCROLLTO_X = 0;           // Target tile for autoscroll, X
+let SCROLLTO_Y = 0;           // Target tile for autoscroll, Y
+// tile cursor
+let SEL_XTILE = 0;            // Selected tile, X
+let SEL_YTILE = 0;            // Selected tile, Y
+let SEL_VISIBLE = false;      // Selection active flag
+let MOUSE_XTILE = 0;          // Tile under mouse, X
+let MOUSE_YTILE = 0;          // Tile under mouse, Y
+// overlays
+let GARDEN_OVERLAY = false;   // Garden overlay flag
+let DEBUG_OVERLAY = true;     // Debug overlay flag
+// loaded data
+let SPR = [];                 // tile sprites
+let MAP = [];                 // map data
+let GARDENS = [];             // gardens in current park
+let OVERLAYS = {};            // 88x31 button graphics
+// canvas information
+let CANVAS_BG = null;         // display canvas reference
+let CTX_BG = null;            // display context
+let BG_RERENDER = false;      // if true, rerender entire background
 
-const COLORS = [
-	"#000022",
-	"#000044",
-	"#002266",
-	"#003399",
-	"#0022AA",
-	"#1144CC",
-	"#1155EE",
-]
-let SPR = [];
-let MAP = [];
-let GARDENS = [];
-let OVERLAYS = {};
-
-const NUM_BG = 1;
-let CANVAS_BG = null;
-let CTX_BG = null;
-let BG_RERENDER = false;
-
-const LEFT = 0;
-const RIGHT = 1;
+/// Utility functions //////////////////////////////////////////////////////////
 
 // https://stackoverflow.com/a/24137301
 Array.prototype.random = function () {
@@ -105,6 +103,8 @@ function distance(x1, y1, x2, y2)
 {
 	return Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
 }
+
+/// (uncategorized) ////////////////////////////////////////////////////////////
 
 // Autoscroll tick
 function Map_DoAutoScroll(t)
@@ -274,7 +274,7 @@ function Map_CacheGfx(url)
 }
 
 // cache 88x31 button graphics
-function Garden_CacheGfx(gardens)
+function Gardens_CacheGfx(gardens)
 {
 	for (let garden of gardens) {
 		for (let tile of garden.tiles) {
@@ -462,13 +462,6 @@ function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 	ctx.closePath();
 	ctx.fill();
 	ctx.stroke();
-	// render debug text
-	/*ctx.fillStyle = 'white';
-	ctx.fillText(
-		xi + ',' + yi,
-		x + (X_TILESIZE / 2),
-		y + (Y_TILESIZE / 2)
-	);*/
 }
 
 function Render_BG_Tile(ctx, x, y, tile) {
@@ -627,11 +620,11 @@ async function Map_Init(tileset_url, tilemap_url, gardenset_url)
 {
 	return Map_CacheGfx(tileset_url)
 	.then(() => {
-		return Garden_LoadFromJSON(gardenset_url);
+		return Gardens_LoadFromJSON(gardenset_url);
 	})
 	.then((gardens) => {
 		GARDENS = gardens;
-		Garden_CacheGfx(gardens);
+		Gardens_CacheGfx(gardens);
 		return Map_LoadFromCSV(tilemap_url);
 	})
 	.then((map) => {
@@ -642,9 +635,10 @@ async function Map_Init(tileset_url, tilemap_url, gardenset_url)
 	});
 }
 
+/// Map pointer events /////////////////////////////////////////////////////////
 function Map_OnPointerDown(e)
 {
-	MOUSE_DOWN = true;
+	if (e.button != 0) {return;}
 	MOUSE_START = [
 		e.offsetX,
 		e.offsetY
@@ -655,7 +649,6 @@ function Map_OnPointerDown(e)
 
 function Map_OnPointerUp(e)
 {
-	MOUSE_DOWN = false;
 	MOUSE_LAST = [
 		e.offsetX - MOUSE_START[0],
 		e.offsetY - MOUSE_START[1]
@@ -676,33 +669,42 @@ function Map_OnPointerUp(e)
 		if (!SEL_VISIBLE) { Info_Hide(); }
 		else { Info_Show(); }
 	}
+	Map_UpdateCursor(e);
 }
 
 function Map_OnPointerMove(e)
 {
-	if(!MOUSE_DOWN) return; // don't pan if mouse is not pressed
-
-	var x = e.offsetX;
-	var y = e.offsetY;
-	MOUSE_LAST = [
-		e.offsetX - MOUSE_START[0],
-		e.offsetY - MOUSE_START[1]
-	];
-
-	//console.log(MOUSE_POS_START, MOUSE_LAST);
-	X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
-	Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
+	const canvas = document.getElementById('mapcanvas');
+	if(e.pressure == 0) {
+		Map_UpdateCursor(e);
+	} else {
+		// update map position when dragging
+		canvas.classList.remove("clickable");
+		MOUSE_LAST = [
+			e.offsetX - MOUSE_START[0],
+			e.offsetY - MOUSE_START[1]
+		];
+		X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
+		Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
+	}
 }
 
-function Map_OnPointerEnter(e)
+// change cursor type if over a link
+function Map_UpdateCursor(e)
 {
-	MOUSE_DOWN = (e.pressure > 0);
-	MOUSE_LAST = [
-		e.offsetX - MOUSE_START[0],
-		e.offsetY - MOUSE_START[1]
-	];
+	const x = e.clientX;
+	const y = e.clientY;
+	const canvas = document.getElementById('mapcanvas');
+	const tile = Coord_Lookup(x, y);
+	const garden = Garden_GetAtTile(tile.x, tile.y);
+	if (Garden_IsLinked(garden)) {
+		canvas.classList.add("clickable");
+	} else {
+		canvas.classList.remove("clickable");
+	}
 }
 
+/// Init ///////////////////////////////////////////////////////////////////////
 function Render_Init()
 {
 	// get BG canvas
@@ -721,7 +723,6 @@ function Render_Init()
 	canvas.onpointerdown = Map_OnPointerDown;
 	canvas.onpointerup = Map_OnPointerUp;
 	canvas.onpointermove = Map_OnPointerMove;
-	canvas.onpointerenter = Map_OnPointerEnter;
 
 	TIME_START = performance.now();
 	TIME_LAST = TIME_START;
