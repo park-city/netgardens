@@ -59,8 +59,10 @@ function Info_RenderTile(canvas, x, y, garden_obj)
 
 	// render any overlays or effects
 	if (garden_obj) {
-		Render_FG_Overlay_Single(ctx, X_TILESIZE, Y_TILESIZE, garden_obj.tile);
-		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, garden_obj.tile);
+		let tile = garden_obj.tile;
+		let color = garden_obj.garden.color;
+		Render_FG_Overlay_Single(ctx, X_TILESIZE, Y_TILESIZE, tile);
+		Render_FG_SiteLink_Single(ctx, X_TILESIZE, Y_TILESIZE, tile, color);
 	}
 }
 // Set properties for a FancyButton

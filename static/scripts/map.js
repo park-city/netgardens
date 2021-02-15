@@ -339,12 +339,17 @@ function Render_FG_SiteLink_Single_Raw(ctx, dx, dy, tile, color)
 	try {
 		ctx.drawImage(OVERLAYS[tile.img], dx, dy);
 	} catch (e) {
-		// placeholder when loading
+		// placeholder when loading / not found
 		ctx.strokeStyle = "#000000";
-		ctx.lineWidth = 2;
+		ctx.lineWidth = 4;
 		ctx.fillStyle = color;
 		ctx.strokeRect(dx, dy, w, h);
 		ctx.fillRect(dx, dy, w, h);
+		// text!
+		ctx.fillStyle = "black";
+		ctx.font = "14px sans-serif";
+		ctx.textAlign = "center";
+		ctx.fillText(tile.name, dx+44, dy+20, 80);
 	}
 }
 
@@ -526,6 +531,7 @@ function Render_FG_Debug(ctx, canvas, timestamp)
 	ctx.fillRect(0, canvas.height - 30, 100, 30);
 
 	ctx.font = '14px monospace';
+	ctx.textAlign = "left";
 	ctx.fillStyle = 'white';
 	ctx.fillText('X:          ' + x_pos, 10, 20);
 	ctx.fillText('X % width:  ' + x_rel, 10, 40);

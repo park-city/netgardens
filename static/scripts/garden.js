@@ -132,8 +132,9 @@ function Garden_ClaimCoreTile()
 	const newgarden = {
 		"owners": [user],
 		"name": "New Garden",
-		"color": d3.hsl(getRandomInt(0, 360), 80, 80),
+		"color": d3.hsl(getRandomInt(0, 360), 0.4, 0.8),
 		"tiles": [{
+			"name": "New Site Link",
 			"x": SEL_XTILE,
 			"y": SEL_YTILE,
 			"orient": 0,
