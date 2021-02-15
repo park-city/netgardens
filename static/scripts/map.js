@@ -642,6 +642,67 @@ async function Map_Init(tileset_url, tilemap_url, gardenset_url)
 	});
 }
 
+function Map_OnPointerDown(e)
+{
+	MOUSE_DOWN = true;
+	MOUSE_START = [
+		e.offsetX,
+		e.offsetY
+	];
+	MOUSE_POS_START = [X_POS, Y_POS];
+	AUTOSCROLL = false;
+}
+
+function Map_OnPointerUp(e)
+{
+	MOUSE_DOWN = false;
+	MOUSE_LAST = [
+		e.offsetX - MOUSE_START[0],
+		e.offsetY - MOUSE_START[1]
+	];
+	// if total movement less than 8 pixels
+	if (Math.abs(MOUSE_LAST[0]) + Math.abs(MOUSE_LAST[1]) < 16) {
+		let seltile = Coord_Lookup(MOUSE_START[0], MOUSE_START[1]);
+
+		if (SEL_XTILE == seltile.x && SEL_YTILE == seltile.y) {
+			// hide if we click on it again
+			SEL_VISIBLE = !SEL_VISIBLE;
+		} else {
+			SEL_XTILE = seltile.x;
+			SEL_YTILE = seltile.y;
+			SEL_VISIBLE = true;
+		}
+
+		if (!SEL_VISIBLE) { Info_Hide(); }
+		else { Info_Show(); }
+	}
+}
+
+function Map_OnPointerMove(e)
+{
+	if(!MOUSE_DOWN) return; // don't pan if mouse is not pressed
+
+	var x = e.offsetX;
+	var y = e.offsetY;
+	MOUSE_LAST = [
+		e.offsetX - MOUSE_START[0],
+		e.offsetY - MOUSE_START[1]
+	];
+
+	//console.log(MOUSE_POS_START, MOUSE_LAST);
+	X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
+	Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
+}
+
+function Map_OnPointerEnter(e)
+{
+	MOUSE_DOWN = (e.pressure > 0);
+	MOUSE_LAST = [
+		e.offsetX - MOUSE_START[0],
+		e.offsetY - MOUSE_START[1]
+	];
+}
+
 function Render_Init()
 {
 	// get BG canvas
@@ -657,55 +718,10 @@ function Render_Init()
 	if (!canvas.getContext) { return; }
 
 	// register canvas events
-	canvas.onpointerdown = function(e) {
-		MOUSE_DOWN = true;
-		MOUSE_START = [
-			e.offsetX,
-			e.offsetY
-		];
-		MOUSE_POS_START = [X_POS, Y_POS];
-		AUTOSCROLL = false;
-	};
-
-	canvas.onpointerup = function(e) {
-		MOUSE_DOWN = false;
-		MOUSE_LAST = [
-			e.offsetX - MOUSE_START[0],
-			e.offsetY - MOUSE_START[1]
-		];
-		// if total movement less than 8 pixels
-		if (Math.abs(MOUSE_LAST[0]) + Math.abs(MOUSE_LAST[1]) < 16) {
-			let seltile = Coord_Lookup(MOUSE_START[0], MOUSE_START[1]);
-
-			if (SEL_XTILE == seltile.x && SEL_YTILE == seltile.y) {
-				// hide if we click on it again
-				SEL_VISIBLE = !SEL_VISIBLE;
-			} else {
-				SEL_XTILE = seltile.x;
-				SEL_YTILE = seltile.y;
-				SEL_VISIBLE = true;
-			}
-
-			if (!SEL_VISIBLE) { Info_Hide(); }
-			else { Info_Show(); }
-		}
-	};
-
-	canvas.onpointermove = function(e)
-	{
-		if(!MOUSE_DOWN) return; // don't pan if mouse is not pressed
-
-		var x = e.offsetX;
-		var y = e.offsetY;
-		MOUSE_LAST = [
-			e.offsetX - MOUSE_START[0],
-			e.offsetY - MOUSE_START[1]
-		];
-
-		//console.log(MOUSE_POS_START, MOUSE_LAST);
-		X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
-		Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
-	}
+	canvas.onpointerdown = Map_OnPointerDown;
+	canvas.onpointerup = Map_OnPointerUp;
+	canvas.onpointermove = Map_OnPointerMove;
+	canvas.onpointerenter = Map_OnPointerEnter;
 
 	TIME_START = performance.now();
 	TIME_LAST = TIME_START;
