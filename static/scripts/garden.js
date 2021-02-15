@@ -94,6 +94,7 @@ function Garden_IsLinked(garden)
 }
 
 /// User actions ///////////////////////////////////////////////////////////////
+// these should all be server-side!
 
 // Claim a tile, adding it to the nearest garden
 function Garden_ClaimTile()
@@ -152,6 +153,49 @@ function Garden_ClaimCoreTile()
 
 	// Add to garden list
 	GARDENS.push(newgarden);
+
+	// Refresh info panel
+	Info_Show();
+}
+
+// Sell a tile from a garden (using the tile currently selected)
+function Garden_SellTile()
+{
+	let garden_obj = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
+	let garden = garden_obj.garden;
+	let tile = garden_obj.tile;
+
+	// if that was a core tile, kill the whole garden
+	if (tile.is_core) {
+		index = GARDENS.indexOf(garden);
+		GARDENS.splice(index, 1);
+
+		// credit some netcoins
+		let cost = Garden_GetPrice(garden);
+		NetCoins_Transaction(-cost);
+		for (let subtile of garden.tiles) {
+			if (subtile.is_core) {
+				Quota_Change_CoreTile(1);
+			} else {
+				Quota_Change_AnyTile(1);
+			}
+		}
+	} else {
+		let index = garden.tiles.indexOf(tile);
+		if (index == -1) { return; }
+		garden.tiles.splice(index, 1);
+
+		// credit some netcoins
+		let cost = Garden_GetTilePrice(tile);
+		NetCoins_Transaction(-cost);
+		if (tile.is_core) {
+			Quota_Change_CoreTile(1);
+		} else {
+			Quota_Change_AnyTile(1);
+		}
+	}
+
+
 
 	// Refresh info panel
 	Info_Show();

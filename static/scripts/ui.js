@@ -185,9 +185,15 @@ function Info_Show_OwnedTile(garden, tile)
 
 		// sell tile
 		let sellprice = Garden_GetTilePrice(tile);
+		let selltitle = "Sell Tile";
+		if (tile.is_core) {
+			sellprice = Garden_GetPrice(garden);
+			selltitle = "Sell All";
+		}
 		Info_SetButton(
-			a.selltile, "", -sellprice, null, NetCoins_Format(sellprice)
+			a.selltile, "", -sellprice, Garden_SellTile, NetCoins_Format(sellprice)
 		);
+		a.selltile.querySelector(".name").innerText = selltitle;
 
 		// buy tile
 		Info_HideButton(a.buytile);
