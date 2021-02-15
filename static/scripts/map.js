@@ -432,6 +432,26 @@ function Render_FG_TileEllipse(ctx, x, y, orient)
 	ctx.stroke();
 }
 
+// Render a "ghost" cursor wherever the mouse is
+function Render_FG_MousePos(ctx)
+{
+	// don't render if on a touchscreen
+	if(window.matchMedia("(any-hover: none)").matches) { return; }
+
+	let yi = MOUSE_YTILE - 1;
+	let xi = Math.floor(MOUSE_XTILE / 2) * 2;
+	if (Math.floor(yi % 2) != 0) {
+		xi = Math.floor((MOUSE_XTILE + 1) / 2) * 2;
+	}
+	let x = -X_POS + xi*X_TILESIZE;
+	let y = -Y_POS + yi*Y_TILESIZE/2;
+
+	ctx.fillStyle = "transparent";
+	ctx.strokeStyle = "#00000066";
+	ctx.lineWidth = 5;
+	Render_FG_TileShape(ctx, x, y, 0, (yi % 2));
+}
+
 // Render the selection cursor
 function Render_FG_Sel(ctx)
 {
@@ -444,7 +464,6 @@ function Render_FG_Sel(ctx)
 	let x = -X_POS + xi*X_TILESIZE;
 	let y = -Y_POS + yi*Y_TILESIZE/2;
 
-	// set no-tile colors
 	ctx.fillStyle = "transparent";
 	ctx.strokeStyle = "#000000";
 	ctx.lineWidth = 5;
@@ -604,6 +623,7 @@ function Render_Step(timestamp)
 	// Render tile ownership overlay
 	Render_FG_Overlay(ctx);
 	// Render current selection
+	Render_FG_MousePos(ctx);
 	Render_FG_Sel(ctx);
 	// Render all visible 88x31 buttons
 	Render_FG_SiteLink(ctx);
@@ -703,6 +723,9 @@ function Map_UpdateCursor(e)
 	const canvas = document.getElementById('mapcanvas');
 	const tile = Coord_Lookup(x, y);
 	const garden = Garden_GetAtTile(tile.x, tile.y);
+
+	MOUSE_XTILE = tile.x;
+	MOUSE_YTILE = tile.y;
 	if (Garden_IsLinked(garden)) {
 		canvas.classList.add("clickable");
 	} else {
