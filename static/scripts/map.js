@@ -48,7 +48,7 @@ let MOUSE_XTILE = 0;          // Tile under mouse, X
 let MOUSE_YTILE = 0;          // Tile under mouse, Y
 // overlays
 let GARDEN_OVERLAY = false;   // Garden overlay flag
-let DEBUG_OVERLAY = true;     // Debug overlay flag
+let DEBUG_OVERLAY = false;    // Debug overlay flag
 // loaded data
 let SPR = [];                 // tile sprites
 let MAP = [];                 // map data
