@@ -39,7 +39,7 @@ let SEL_XTILE = 8;
 let SEL_YTILE = 4;
 let SEL_VISIBLE = false;
 let GARDEN_OVERLAY = false;
-let DEBUG_OVERLAY = false;
+let DEBUG_OVERLAY = true;
 
 const COLORS = [
 	"#000022",
@@ -522,20 +522,22 @@ function Render_FG_Debug(ctx, canvas, timestamp)
 {
 	if (!DEBUG_OVERLAY) { return; }
 	// timestamp
-	let x_pos = Math.floor(mod(X_POS, CANVAS_BG.width));
-	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG.height));
+	let x_pos = Math.round(X_POS, 2);
+	let y_pos = Math.round(Y_POS, 2);
+	let x_rel = Math.floor(mod(X_POS, CANVAS_BG.width));
+	let y_rel = Math.floor(mod(Y_POS, CANVAS_BG.height));
 	let fps = Math.round(1/((timestamp - TIME_LAST) / 1000));
 
 	ctx.fillStyle = 'black';
-	ctx.fillRect(0, 0, 160, 90); // 
+	ctx.fillRect(0, 0, 160, 90); //
 	ctx.fillRect(0, canvas.height - 30, 100, 30);
 
 	ctx.font = '14px monospace';
 	ctx.fillStyle = 'white';
-	ctx.fillText('X:          ' + X_POS, 10, 20);
-	ctx.fillText('X % width:  ' + x_pos, 10, 40);
-	ctx.fillText('Y:          ' + Y_POS, 10, 60);
-	ctx.fillText('Y % height: ' + y_pos, 10, 80);
+	ctx.fillText('X:          ' + x_pos, 10, 20);
+	ctx.fillText('X % width:  ' + x_rel, 10, 40);
+	ctx.fillText('Y:          ' + y_pos, 10, 60);
+	ctx.fillText('Y % height: ' + y_rel, 10, 80);
 	ctx.fillText("FPS: " + fps, 10, canvas.height - 10);
 }
 
@@ -543,10 +545,10 @@ function Render_FG_Debug(ctx, canvas, timestamp)
 function Render_FG_CopyBG(ctx, canvas)
 {
 	ctx.globalCompositeOperation = 'source-over';
-	//ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
+	ctx.clearRect(0, 0, canvas.width, canvas.height); // temporary!
 
-	let x_pos = Math.floor(mod(X_POS, CANVAS_BG.width));
-	let y_pos = Math.floor(mod(Y_POS, CANVAS_BG.height));
+	let x_pos = Math.floor(mod(-X_POS, CANVAS_BG.width));
+	let y_pos = Math.floor(mod(-Y_POS, CANVAS_BG.height));
 
 	// bg copy positions
 	const x_off = [
@@ -564,25 +566,22 @@ function Render_FG_CopyBG(ctx, canvas)
 	const num_off = 4;
 
 	for(let i = 0; i < num_off; i += 1) {
-		ctx.drawImage(
-			CANVAS_BG,
-			x_off[i], y_off[i],                    // src x, y
-			canvas.width, canvas.height,           // src w, h
-			0, 0, canvas.width, canvas.height      // dst x, y, w, h
-		);
+		let x = x_off[i]; let w = CANVAS_BG.width;
+		let y = y_off[i]; let h = CANVAS_BG.height;
+		ctx.drawImage(CANVAS_BG, 0, 0, w, h, x, y, w, h);
 	}
 
 	// print a clipping box
 	ctx.fillStyle = 'black';
 	ctx.fillRect(
-		CANVAS_BG.width / 2,
+		CANVAS_BG.width,
 		0,
 		9999999,
 		9999999
 	);
 	ctx.fillRect(
 		0,
-		CANVAS_BG.height / 2,
+		CANVAS_BG.height,
 		9999999,
 		9999999
 	);
