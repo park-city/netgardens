@@ -3,26 +3,20 @@
 // variables
 let SIDEBAR_ID = "";
 let USER = "invis";
-
-// list of map tilesets (temporary)
-const TILESETS = {
-	'central-park': 'static/tiles/central-park.png',
-	'debug-park': 'static/tiles/scoli-blocks.png'
-}
-const TILEMAPS = {
-	'central-park': 'static/maps/testmap1.csv',
-	'debug-park': 'static/maps/debug-park.csv'
-}
-const GARDENSETS = {
-	'central-park': 'static/maps/testmap1_gardens.json',
-	'debug-park': 'static/maps/testmap1_gardens.json'
-}
+let PARKS = {};
+let PARKS_DEFAULT = "central-park";
 
 // Server-side getters/setters /////////////////////////////////////////////////
 // Get name of logged in user
 function User_GetName()
 {
 	return USER;
+}
+
+// Get list of parks
+function Parks_GetInfo()
+{
+	return d3.json("/static/maps/park-info.json"); // temporary
 }
 
 // General Sidebar Helpers ////////////////////////////////////////////////////
@@ -376,36 +370,83 @@ function ParkSel_Hide()
 	nav_parksel.classList.remove("active");
 }
 
+// event handler for button click
+function ParkSel_ButtonEvent(e)
+{
+	let id = e.parentElement.dataset.id;
+	let park = PARKS[id];
+	console.assert(park, "park list not loaded?!");
+	// Start loading map
+	Map_Init(park.tiles, park.map, park.gardens);
+	// Set navbar text
+	let nav_parksel = document.querySelector("nav a[data-id='parksel']");
+	nav_parksel.innerText = name;
+	// Close panel
+	ParkSel_Hide();
+}
+
+// create a parksel listing
+// this is a good argument for JSX...
+function ParkSel_MakeItem(park, id)
+{
+	let row = document.createElement("div");
+	row.dataset.id = id;
+
+	let icon = document.createElement("img");
+	icon.src = park.icon;
+	row.appendChild(icon);
+
+	let name = document.createElement("div");
+	name.classList.add("name");
+	name.innerText = park.name;
+	row.appendChild(name);
+
+	let desc = document.createElement("div");
+	desc.classList.add("desc");
+	desc.innerText = park.desc;
+	row.appendChild(desc);
+
+	let btn = document.createElement("a");
+	btn.href = "#";
+	btn.classList.add("button");
+	btn.classList.add("action");
+	btn.onclick = ParkSel_ButtonEvent;
+	btn.innerText = "Visit";
+	row.appendChild(btn);
+
+	let credits = document.createElement("div")
+	credits.classList.add("credits");
+
+	let credits_artists = document.createElement("div");
+	credits_artists.classList.add("owners");
+	let credits_artists_title = document.createElement("span");
+	credits_artists_title.innerText = "Artists: ";
+	credits.appendChild(credits_artists_title);
+	Info_MakeOwnersLine(park.artists, credits_artists);
+	credits.appendChild(credits_artists);
+
+	let credits_mappers = document.createElement("div");
+	credits_mappers.classList.add("owners");
+	let credits_mappers_title = document.createElement("span");
+	credits_mappers_title.innerText = "Mappers: ";
+	credits.appendChild(credits_mappers_title);
+	Info_MakeOwnersLine(park.mappers, credits_mappers);
+	credits.appendChild(credits_mappers);
+
+	row.appendChild(credits);
+
+	return row;
+}
+
 // register the parksel icons
 function ParkSel_Register()
 {
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
-	let parks = sidebars.querySelector(".sidebar[data-id='parksel'] > .fancylist").children;
-	let nav_parksel = document.querySelector("nav a[data-id='parksel']");
+	let parklist = sidebars.querySelector(".sidebar[data-id='parksel'] > .fancylist");
 
-	for (let park of parks) {
-		let button = park.getElementsByClassName("button")[0];
-		if (button.classList.contains("disabled")) { continue; }
-		if (park.dataset.id == "cancel") {
-			button.addEventListener('pointerup', (e) => {
-				ParkSel_Hide();
-			});
-		} else {
-			let name = park.getElementsByClassName("name")[0].innerText;
-			button.addEventListener('pointerup', (e) => {
-				// load map data
-				Map_Init(
-					TILESETS[park.dataset.id],
-					TILEMAPS[park.dataset.id],
-					GARDENSETS[park.dataset.id]
-				);
-				// Set navbar text
-				nav_parksel.innerText = name;
-				// Close panel
-				ParkSel_Hide();
-			});
-		}
+	for (let parkid in PARKS) {
+		parklist.appendChild(ParkSel_MakeItem(PARKS[parkid], parkid));
 	}
 }
 
@@ -556,14 +597,18 @@ function Nav_UpdateLogin()
 document.addEventListener("DOMContentLoaded", (event) =>
 {
 	/// load map data (async) ///
-	Map_Init(
-		TILESETS['central-park'],
-		TILEMAPS['central-park'],
-		GARDENSETS['central-park']
-	).then(() => {
-		// set demo autoscroll
-		Map_SetAutoScroll(0.5, 0.5);
-	})
+	Parks_GetInfo().then((parks) => {
+		PARKS = parks;
+		let default_park = PARKS[PARKS_DEFAULT];
+		Map_Init(
+			default_park.tiles,
+			default_park.map,
+			default_park.gardens
+		);
+	}).then(() => {
+		Map_SetAutoScroll(0.5, 0.5); // set demo autoscroll
+		ParkSel_Register(); // Register park selection list
+	});
 
 	/// set sidebar events ///
 	Info_SetID("sidebars");
@@ -601,7 +646,6 @@ document.addEventListener("DOMContentLoaded", (event) =>
 		e.preventDefault();
 		ParkSel_Show();
 	});
-	ParkSel_Register();
 
 	// 🔍: toggle overlay
 	let nav_overlay = navbar.querySelector("[data-id='overlay']");

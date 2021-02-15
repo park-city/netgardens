@@ -1,0 +1,22 @@
+{
+	"central-park": {
+		"name": "Central Park",
+		"desc": "Our most park-like park, this is a great catch-all place to plant the seeds of your garden.",
+		"icon": "/static/icons/central-park.png",
+		"map": "/static/maps/testmap1.csv",
+		"gardens": "/static/maps/testmap1_gardens.json",
+		"tiles": "/static/tiles/central-park.png",
+		"artists": ["scoli", "roseknight"],
+		"mappers": ["invis"]
+	},
+	"debug-park": {
+		"name": "Debug Park",
+		"desc": "test park please ignore",
+		"icon": "/static/icons/debug-park.png",
+		"map": "/static/maps/debug-park.csv",
+		"gardens": "/static/maps/testmap1_gardens.json",
+		"tiles": "/static/tiles/scoli-blocks.png",
+		"artists": ["scoli"],
+		"mappers": ["invis"]
+	}
+}

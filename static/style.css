@@ -214,11 +214,13 @@ body {
 	grid-column: 2;
 	font-size: 24px;
 	margin: 0;
+	font-weight: bold;
 }
 /* pick one? */
 .fancylist > div .desc {
 	grid-row: 2 / 4;
 	grid-column: 2;
+	font-size: 18px;
 }
 .fancylist > div .owners {
 	grid-row: 2;
@@ -235,12 +237,31 @@ body {
 	display: inline-flex;
 	align-items: center;
 	margin-right: 16px;
+	margin-top: 0;
 }
 .fancylist > div .owners > div > img {
 	width: 32px;
 	height: 32px;
-	border-radius: 100%;
+	border-radius: 4px;
 	margin-right: 4px;
+}
+.fancylist > div > .credits {
+	display: grid;
+	grid-auto-columns: 120px auto;
+	grid-column: 1 / 3;
+	align-items: center;
+	row-gap: 1ex;
+}
+.fancylist > div > .credits > span {
+	grid-row: auto;
+	grid-column: 1;
+	font-size: 18px;
+	width: 80px;
+	margin: auto;
+}
+.fancylist > div > .credits > div.owners {
+	grid-row: auto;
+	grid-column: 2;
 }
 .fancylist.striped > div:nth-child(2n) {
 	background: #CCCCCC;
