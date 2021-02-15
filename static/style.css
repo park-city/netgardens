@@ -214,7 +214,7 @@ body {
 .properties {
 	display: grid;
 	grid-auto-columns: 120px auto;
-	grid-auto-rows: 40px;
+	grid-auto-rows: minmax(40px, auto);
 	align-items: center;
 }
 .properties .header {
