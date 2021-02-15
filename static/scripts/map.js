@@ -664,7 +664,7 @@ async function Map_Init(tileset_url, tilemap_url, gardenset_url)
 /// Map pointer events /////////////////////////////////////////////////////////
 function Map_OnPointerDown(e)
 {
-	if (e.button != 0) {return;}
+	if (e.buttons != 1) {return;}
 	MOUSE_START = [
 		e.offsetX,
 		e.offsetY
@@ -701,9 +701,7 @@ function Map_OnPointerUp(e)
 function Map_OnPointerMove(e)
 {
 	const canvas = document.getElementById('mapcanvas');
-	if(e.pressure == 0) {
-		Map_UpdateCursor(e);
-	} else {
+	if ((e.pressure != 0 && e.buttons == 0) || e.buttons == 1) {
 		// update map position when dragging
 		canvas.classList.remove("clickable");
 		MOUSE_LAST = [
@@ -712,6 +710,8 @@ function Map_OnPointerMove(e)
 		];
 		X_POS = MOUSE_POS_START[0] - MOUSE_LAST[0];
 		Y_POS = MOUSE_POS_START[1] - MOUSE_LAST[1];
+	} else {
+		Map_UpdateCursor(e);
 	}
 }
 
