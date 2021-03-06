@@ -596,7 +596,7 @@ function Nav_UpdateLogin()
 {
 	let nav_login = document.querySelector("nav [data-id='login']")
 	let nav_login_img = nav_login.querySelector("img");
-	let nav_login_name = nav_login.querySelector("a");
+	let nav_login_name = nav_login.querySelector("span");
 	let user = User_GetName();
 	if (user) {
 		nav_login_img.classList.remove("hidden");
