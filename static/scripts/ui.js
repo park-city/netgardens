@@ -71,13 +71,9 @@ function Info_SetButton(div, status, cost, action, btn_label)
 	if (btn_label) {
 		button.innerText = btn_label;
 	}
-	// display "out of funds" message if applicable
-	if (!NetCoins_Test(cost)) {
-		status_elem.innerText = "Out of funds";
-	}
 
 	// add event handler if applicable
-	if (NetCoins_Test(cost) && action) {
+	if (action) {
 		button.classList.remove("disabled");
 		button.onpointerup = action;
 	} else {
@@ -184,14 +180,12 @@ function Info_Show_OwnedTile(garden, tile)
 		Info_SetButton(a.coretile, "Claimed", 0, null, "Edit Link");
 
 		// sell tile
-		let sellprice = Garden_GetTilePrice(tile);
-		let selltitle = "Sell Tile";
+		let selltitle = "Unclaim Tile";
 		if (tile.is_core) {
-			sellprice = Garden_GetPrice(garden);
-			selltitle = "Sell All";
+			selltitle = "Unclaim Garden";
 		}
 		Info_SetButton(
-			a.selltile, "", -sellprice, Garden_SellTile, NetCoins_Format(sellprice)
+			a.selltile, "", -0, Garden_SellTile, "Unclaim"
 		);
 		a.selltile.querySelector(".name").innerText = selltitle;
 
@@ -199,23 +193,21 @@ function Info_Show_OwnedTile(garden, tile)
 		Info_HideButton(a.buytile);
 
 		// backdrop
-		let gfxprice = Garden_GetTileAddonPrice("is_gfx");
 		if (tile.is_gfx) {
 			// todo: link to gfx editor
 			Info_SetButton(a.edittile, "Purchased", 0, null, "Edit GFX");
 		} else {
 			// todo: link to buy
-			Info_SetButton(a.edittile, "Edit tile gfx", gfxprice, null, NetCoins_Format(gfxprice));
+			Info_SetButton(a.edittile, "Edit tile gfx", 0, null, "Edit");
 		}
 
 		// teleport
-		let teleprice = Garden_GetTileAddonPrice("is_tele");
 		if (tile.is_gfx) {
 			// todo: link to target editor
 			Info_SetButton(a.teletile, "Purchased", 0, null, "Set Target");
 		} else {
 			// todo: link to buy
-			Info_SetButton(a.teletile, "Link gardens", teleprice, null, NetCoins_Format(teleprice));
+			Info_SetButton(a.teletile, "Link gardens", 0, null, "Add");
 		}
 	} else {
 		Info_HideButton(a.buytile);
@@ -244,19 +236,17 @@ function Info_Show_VacantTile()
 	if (User_GetName()) {
 		// core tile
 		let quota_core = Quota_CoreTile();
-		let price_core = Garden_GetTilePrice({is_core: true});
 		let fcn_core = (quota_core > 0) ? Garden_ClaimCoreTile : null;
 		Info_SetButton(
 			a.coretile,
 			quota_core + " left",
-			price_core,
+			0,
 			fcn_core,
-			NetCoins_Format(price_core)
+			"Claim"
 		);
 
 		// buy tile
 		let quota_any = Quota_AnyTile();
-		let price_any = Garden_GetTilePrice({});
 		let fcn_any = (quota_any > 0) ? Garden_ClaimTile : null;
 		let dist = Gardens_GetNearestOwned_Dist(User_GetName());
 		const max_dist = 2.5;
@@ -264,17 +254,17 @@ function Info_Show_VacantTile()
 			Info_SetButton(
 				a.buytile,
 				quota_any + " left",
-				price_any,
+				0,
 				fcn_any,
-				NetCoins_Format(price_any)
+				"Claim"
 			);
 		} else if (max_dist < Infinity) {
 			Info_SetButton(
 				a.buytile,
 				"Not by garden",
-				price_any,
+				0,
 				null,
-				NetCoins_Format(price_any)
+				"Claim"
 			);
 		} else {
 			// no gardens at all
@@ -568,15 +558,6 @@ function SiteList_Populate()
 
 /// Main Navbar ///////////////////////////////////////////////////////////////
 
-function Nav_UpdateNetCoins()
-{
-	let navbar = document.getElementsByTagName("nav")[0];
-	let netcoins = navbar.querySelector("[data-id='viewcoins']");
-
-	let amount = NetCoins_Query();
-	netcoins.innerText = NetCoins_Format(amount);
-}
-
 // Toggle garden ownership overlay
 function Nav_ToggleOverlay()
 {
@@ -631,7 +612,7 @@ document.addEventListener("DOMContentLoaded", (event) =>
 	// collapsable sidebar(s)
 	for(let e of document.getElementsByClassName('collapsebtn')) {
 		e.addEventListener('pointerup', (event) => {
-			event.target.parentElement.classList.toggle("closed");
+			Info_Hide();
 		});
 	}
 
@@ -679,9 +660,6 @@ document.addEventListener("DOMContentLoaded", (event) =>
 		e.preventDefault();
 		SiteList_Show();
 	});
-
-	// netcoins: init value
-	Nav_UpdateNetCoins();
 
 	// login: set user name and pic accordingly
 	Nav_UpdateLogin();

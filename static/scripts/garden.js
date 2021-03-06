@@ -113,9 +113,6 @@ function Garden_ClaimTile()
 	// Take away from quota
 	let quota_okay = Quota_Change_AnyTile(-1);
 	if (!quota_okay) { return; }
-	// purchase plot
-	let cost = Garden_GetTilePrice(newtile);
-	NetCoins_Transaction(cost);
 
 	// Add tile to closest owned garden (should be valid)
 	let tgt_garden = Gardens_GetNearestOwned();
@@ -147,9 +144,6 @@ function Garden_ClaimCoreTile()
 	// Take away from quota
 	let quota_okay = Quota_Change_CoreTile(-1);
 	if (!quota_okay) { return; }
-	// purchase plot
-	let cost = Garden_GetTileAddonPrice("is_core");
-	NetCoins_Transaction(cost);
 
 	// Add to garden list
 	GARDENS.push(newgarden);
@@ -170,9 +164,6 @@ function Garden_SellTile()
 		index = GARDENS.indexOf(garden);
 		GARDENS.splice(index, 1);
 
-		// credit some netcoins
-		let cost = Garden_GetPrice(garden);
-		NetCoins_Transaction(-cost);
 		for (let subtile of garden.tiles) {
 			if (subtile.is_core) {
 				Quota_Change_CoreTile(1);
@@ -185,9 +176,6 @@ function Garden_SellTile()
 		if (index == -1) { return; }
 		garden.tiles.splice(index, 1);
 
-		// credit some netcoins
-		let cost = Garden_GetTilePrice(tile);
-		NetCoins_Transaction(-cost);
 		if (tile.is_core) {
 			Quota_Change_CoreTile(1);
 		} else {
