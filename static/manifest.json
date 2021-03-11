@@ -1,0 +1,15 @@
+{
+	"name": "Netgardens Online",
+	"short_name": "Netgardens",
+	"lang": "en-US",
+	"start_url": "https://netgardens.online",
+	"display": "standalone",
+	"theme_color": "#8FEADC",
+	"icons": [
+	  {
+	    "src": "/static/icon-apple.png",
+	    "sizes": "180x180",
+	    "type": "image/png"
+	  }
+	]
+}
