@@ -29,21 +29,23 @@
 	<script src="https://d3js.org/d3-dsv.v2.min.js" defer></script>
 	<script src="https://d3js.org/d3-fetch.v2.min.js" defer></script>
 	<script src="https://d3js.org/d3-color.v2.min.js" defer></script>
+	<script src="https://unpkg.com/vue@next" defer></script> <!-- debug ver -->
+
 	<script src="/static/scripts/garden.js" defer></script>
 	<script src="/static/scripts/map.js" defer></script>
 	<script src="/static/scripts/accounting.js" defer></script>
 	<script src="/static/scripts/ui.js" defer></script>
 </head>
-<body>
+<body id="app">
 	<nav>
-		<a href="#" data-id="logo">Netgardens<br />Online</a>
-		<a href="#" data-id="parksel" title="Switch Park">Central Park</a>
-		<a href="#" data-id="overlay" title="View Garden Overlay">🔍</a>
-		<a href="#" data-id="browse" title="Browse">📃</a>
+		<a href="#" data-id="logo" v-on:click="Splash_Show">Netgardens<br />Online</a>
+		<a href="#" data-id="parksel" title="Switch Park" v-on:click="ParkSel_Show">{{park}}</a>
+		<a href="#" data-id="overlay" title="View Garden Overlay" v-on:click="Nav_ToggleOverlay">🔍</a>
+		<a href="#" data-id="browse" title="Browse" v-on:click="SiteList_Show">📃</a>
 		<a href="#" data-id="listfavs" title="Bookmarks" class="disabled">❤️</a>
 		<a href="#" data-id="login">
-			<img src="static/profpics/invis.png">
-			<span>{user}</span>
+			<img src="{{user_img}}">
+			<span>{{user_name}}</span>
 		</a>
 	</nav>
 
@@ -109,7 +111,7 @@
 				<div class="fancylist"></div>
 			</div>
 			<div class="sidebar" data-id="sitelist">
-				<h1>Gardens in<br /><span data-id="parkname">{parkname}</span></h1>
+				<h1>Gardens in<br />{{park}}</h1>
 				<div class="fancylist striped"></div>
 			</div>
 			<div class="collapsebtn">« Back</div>
@@ -122,7 +124,7 @@
 			<a href="https://park-city.club"><img src="static/parkcity.png" alt="Part of the Park City Network" /></a>
 			<a href="/about" class="button action" data-id="readmore">Read More</a>
 			<a href="#" class="button disabled" data-id="signup" title="Not implemented!">Sign Up</a>
-			<a href="#" class="button sell" data-id="close">Close</a>
+			<a href="#" class="button sell" data-id="close" v-on:click="Splash_Hide">Close</a>
 		</div>
 
 		<div class="map">
@@ -131,5 +133,5 @@
 			<canvas id="bg0" width="4096" height="2048" style="display: none;"></canvas>
 		</div>
 	</div>
-</body>
+</div>
 </html>
