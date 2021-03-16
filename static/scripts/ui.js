@@ -5,7 +5,6 @@ let SIDEBAR_ID = "";
 let USER = "invis";
 let PARKS = {};
 let PARKS_DEFAULT = "central-park";
-let VUE_APP = null;
 
 // Server-side getters/setters /////////////////////////////////////////////////
 // Get name of logged in user
@@ -535,11 +534,11 @@ function SiteList_Populate()
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
 	let infopanel = sidebars.querySelector("[data-id='sitelist']");
-	//let parkname = infopanel.querySelector("[data-id='parkname']");
+	let parkname = infopanel.querySelector("[data-id='parkname']");
 	let list = infopanel.querySelector(".fancylist");
 
 	// Copy park name over
-	//parkname.innerText = ParkSel_GetName();
+	parkname.innerText = ParkSel_GetName();
 
 	// Get a list of nearby sites, sorted by distance from viewport
 	let center_tile = Coord_Lookup_Center();
@@ -560,7 +559,6 @@ function SiteList_Populate()
 /// Main Navbar ///////////////////////////////////////////////////////////////
 
 // Toggle garden ownership overlay
-
 function Nav_ToggleOverlay()
 {
 	let navbar = document.getElementsByTagName("nav")[0];
@@ -591,18 +589,6 @@ function Nav_UpdateLogin()
 	}
 }
 
-function Splash_Hide()
-{
-	let splash = document.getElementsByClassName('advertise')[0];
-	splash.classList.add('hidden');
-}
-
-function Splash_Show()
-{
-	let splash = document.getElementsByClassName('advertise')[0];
-	splash.classList.remove('hidden');
-}
-
 // init
 document.addEventListener("DOMContentLoaded", (event) =>
 {
@@ -616,43 +602,30 @@ document.addEventListener("DOMContentLoaded", (event) =>
 			default_park.gardens
 		);
 	}).then(() => {
-		Render_Init();
 		Map_SetAutoScroll(0.5, 0.5); // set demo autoscroll
 		ParkSel_Register(); // Register park selection list
 	});
-
-	/// Vue stuff ///
-	VUE_APP = {
-		data(){ return {
-			park: "Central Park",
-			user_name: "invis",
-			user_img: "/static/profpics/invis.png"
-		}},
-		methods: {
-			Nav_UpdateLogin,
-			Nav_ToggleOverlay,
-			ParkSel_Show,
-			SiteList_Show,
-			Info_Hide,
-			Splash_Hide
-		}
-	};
-	Vue.createApp(VUE_APP).mount("body");
 
 	/// set sidebar events ///
 	Info_SetID("sidebars");
 
 	// collapsable sidebar(s)
-	/*for(let e of document.getElementsByClassName('collapsebtn')) {
+	for(let e of document.getElementsByClassName('collapsebtn')) {
 		e.addEventListener('pointerup', (event) => {
 			Info_Hide();
 		});
-	}*/
+	}
+
+	// hide splash on click
+	let splash = document.getElementsByClassName('advertise')[0];
+	let splash_close = splash.querySelector("[data-id='close']");
+	splash_close.addEventListener('pointerup', (event) => {
+		splash.classList.add('hidden');
+	});
 
 	// resize canvas on window resize
 	window.addEventListener('resize', () => { resize_canvas(); });
 
-	/*
 	/// navbar actions ///
 	let navbar = document.getElementsByTagName("nav")[0];
 
@@ -698,5 +671,5 @@ document.addEventListener("DOMContentLoaded", (event) =>
 		else { USER = null; }
 		Nav_UpdateLogin();
 		Info_Hide();
-	})*/
+	})
 });

@@ -746,7 +746,7 @@ function Render_Init()
 
 	// primary canvas
 	const canvas = document.getElementById('mapcanvas');
-	//if (!canvas.getContext) { return; }
+	if (!canvas.getContext) { return; }
 
 	// register canvas events
 	canvas.onpointerdown = Map_OnPointerDown;
@@ -759,3 +759,5 @@ function Render_Init()
 	// on each frame
 	window.requestAnimationFrame(Render_Step);
 }
+
+document.addEventListener("DOMContentLoaded", (event) => Render_Init());
