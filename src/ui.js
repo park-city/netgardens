@@ -1,4 +1,38 @@
 'use strict';
+import {json as d3_json} from 'd3-fetch';
+
+import {
+	Garden_ClaimTile,
+	Garden_SellTile,
+	Garden_GetAtTile,
+	Gardens_GetNearestOwned_Dist,
+	Garden_ClaimCoreTile,
+	Gardens_SortDistance
+} from './garden.js';
+
+import {
+	MAP,
+	Render_BG_Tile,
+	Render_FG_Overlay_Single,
+	Render_FG_SiteLink_Single,
+	Render_FG_SiteLink_Single_Raw,
+	Coord_Lookup_Center,
+	Garden_ToggleOverlay,
+	Garden_OverlayActive,
+	Map_SetAutoScroll,
+	X_TILESIZE, Y_TILESIZE,
+	SEL_XTILE, SEL_YTILE,
+	Map_Init
+} from './map.js';
+
+import {
+	Quota_CoreTile,
+	Quota_AnyTile
+} from './accounting.js';
+
+import {
+	resize_canvas
+} from './helpers.js';
 
 // variables
 let SIDEBAR_ID = "";
@@ -8,7 +42,7 @@ let PARKS_DEFAULT = "central-park";
 
 // Server-side getters/setters /////////////////////////////////////////////////
 // Get name of logged in user
-function User_GetName()
+export function User_GetName()
 {
 	return USER;
 }
@@ -16,7 +50,7 @@ function User_GetName()
 // Get list of parks
 function Parks_GetInfo()
 {
-	return d3.json("/static/maps/park-info.json"); // temporary
+	return d3_json("/static/maps/park-info.json"); // temporary
 }
 
 // General Sidebar Helpers ////////////////////////////////////////////////////
@@ -283,7 +317,7 @@ function Info_Show_VacantTile()
 }
 
 // Populate an info panel
-function Info_Show()
+export function Info_Show()
 {
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
@@ -316,7 +350,7 @@ function Info_Show()
 }
 
 // Hide all sidebars and remove collapse button
-function Info_Hide()
+export function Info_Hide()
 {
 	if (!SIDEBAR_ID) {return;}
 	let sidebars = document.getElementById(SIDEBAR_ID);
@@ -591,87 +625,85 @@ function Nav_UpdateLogin()
 
 // init
 export function init() {
-	document.addEventListener("DOMContentLoaded", (event) =>
-	{
-		/// load map data (async) ///
-		Parks_GetInfo().then((parks) => {
-			PARKS = parks;
-			let default_park = PARKS[PARKS_DEFAULT];
-			Map_Init(
-				default_park.tiles,
-				default_park.map,
-				default_park.gardens
-			);
-		}).then(() => {
-			Map_SetAutoScroll(0.5, 0.5); // set demo autoscroll
-			ParkSel_Register(); // Register park selection list
-		});
-
-		/// set sidebar events ///
-		Info_SetID("sidebars");
-
-		// collapsable sidebar(s)
-		for(let e of document.getElementsByClassName('collapsebtn')) {
-			e.addEventListener('pointerup', (event) => {
-				Info_Hide();
-			});
-		}
-
-		// hide splash on click
-		let splash = document.getElementsByClassName('advertise')[0];
-		let splash_close = splash.querySelector("[data-id='close']");
-		splash_close.addEventListener('pointerup', (event) => {
-			splash.classList.add('hidden');
-		});
-
-		// resize canvas on window resize
-		window.addEventListener('resize', () => { resize_canvas(); });
-
-		/// navbar actions ///
-		let navbar = document.getElementsByTagName("nav")[0];
-
-		// logo: show splash screen
-		let nav_ngo = navbar.querySelector("[data-id='logo']");
-		nav_ngo.addEventListener('pointerup', (e) => {
-			e.preventDefault();
-			splash.classList.remove('hidden');
-		});
-
-		// park name: show park selector
-		let nav_parksel = navbar.querySelector("[data-id='parksel']");
-		nav_parksel.addEventListener('pointerup', (e) => {
-			e.preventDefault();
-			ParkSel_Show();
-		});
-
-		// 🔍: toggle overlay
-		let nav_overlay = navbar.querySelector("[data-id='overlay']");
-		nav_overlay.addEventListener('pointerup', (e) => {
-			e.preventDefault();
-			Nav_ToggleOverlay();
-		});
-		// and set the active state just in case
-		if (Garden_OverlayActive()) {
-			nav_overlay.classList.add("active");
-		}
-
-		// 📃: browse sites/gardens
-		let nav_browse = navbar.querySelector("[data-id='browse']");
-		nav_browse.addEventListener('pointerup', (e) => {
-			e.preventDefault();
-			SiteList_Show();
-		});
-
-		// login: set user name and pic accordingly
-		Nav_UpdateLogin();
-		let nav_login = navbar.querySelector("[data-id='login']")
-		nav_login.addEventListener('pointerup', (e) => {
-			e.preventDefault();
-			// debugging logging in and out
-			if (!USER) { USER = "invis"; }
-			else { USER = null; }
-			Nav_UpdateLogin();
-			Info_Hide();
-		})
+	console.log("UI_Init");
+	/// load map data (async) ///
+	Parks_GetInfo().then((parks) => {
+		PARKS = parks;
+		let default_park = PARKS[PARKS_DEFAULT];
+		Map_Init(
+			default_park.tiles,
+			default_park.map,
+			default_park.gardens
+		);
+	}).then(() => {
+		Map_SetAutoScroll(0.5, 0.5); // set demo autoscroll
+		ParkSel_Register(); // Register park selection list
 	});
+
+	/// set sidebar events ///
+	Info_SetID("sidebars");
+
+	// collapsable sidebar(s)
+	for(let e of document.getElementsByClassName('collapsebtn')) {
+		e.addEventListener('pointerup', (event) => {
+			Info_Hide();
+		});
+	}
+
+	// hide splash on click
+	let splash = document.getElementsByClassName('advertise')[0];
+	let splash_close = splash.querySelector("[data-id='close']");
+	splash_close.addEventListener('pointerup', (event) => {
+		splash.classList.add('hidden');
+	});
+
+	// resize canvas on window resize
+	window.addEventListener('resize', () => { resize_canvas(); });
+
+	/// navbar actions ///
+	let navbar = document.getElementsByTagName("nav")[0];
+
+	// logo: show splash screen
+	let nav_ngo = navbar.querySelector("[data-id='logo']");
+	nav_ngo.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		splash.classList.remove('hidden');
+	});
+
+	// park name: show park selector
+	let nav_parksel = navbar.querySelector("[data-id='parksel']");
+	nav_parksel.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		ParkSel_Show();
+	});
+
+	// 🔍: toggle overlay
+	let nav_overlay = navbar.querySelector("[data-id='overlay']");
+	nav_overlay.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		Nav_ToggleOverlay();
+	});
+	// and set the active state just in case
+	if (Garden_OverlayActive()) {
+		nav_overlay.classList.add("active");
+	}
+
+	// 📃: browse sites/gardens
+	let nav_browse = navbar.querySelector("[data-id='browse']");
+	nav_browse.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		SiteList_Show();
+	});
+
+	// login: set user name and pic accordingly
+	Nav_UpdateLogin();
+	let nav_login = navbar.querySelector("[data-id='login']")
+	nav_login.addEventListener('pointerup', (e) => {
+		e.preventDefault();
+		// debugging logging in and out
+		if (!USER) { USER = "invis"; }
+		else { USER = null; }
+		Nav_UpdateLogin();
+		Info_Hide();
+	})
 }

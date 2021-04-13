@@ -1,18 +1,32 @@
 'use strict'
 // Functions related to gardens/occupied tiles
-import {json} from 'd3-fetch';
-import {hsl} from 'd3-color';
 
-/// Helper functions for rendering, UI, etc. ///////////////////////////////////
+import {json as d3_json} from 'd3-fetch';
+import {hsl as d3_hsl} from 'd3-color';
+
+import {User_GetName, Info_Show} from './ui.js';
+import {distance, getRandomInt} from './helpers.js';
+import {Quota_Change_AnyTile, Quota_Change_CoreTile} from './accounting.js';
+import {SEL_XTILE, SEL_YTILE} from './map.js'
+
+// Global vars ////////////////////////////////////////////////////////////////
+
+export let GARDENS = [];             // gardens in current park
+
+/// Helper functions for rendering, UI, etc. //////////////////////////////////
 
 // Load a list of gardens from a JSON file
 export async function Gardens_LoadFromJSON(url)
 {
-	return d3.json(url);
+	return d3_json(url);
+}
+
+export function Gardens_Set(gardens){
+	GARDENS = gardens;
 }
 
 // Get the garden at a specific tile
-export function Garden_GetAtTile(GARDENS, x, y)
+export function Garden_GetAtTile(x, y)
 {
 	for (let garden of GARDENS) {
 		for (let tile of garden.tiles) {
@@ -27,7 +41,7 @@ export function Garden_GetAtTile(GARDENS, x, y)
 }
 
 // find all gardens owned by some user
-export function Gardens_OwnedBy(user, gardenlist)
+export function Gardens_OwnedBy(GARDENS, user, gardenlist)
 {
 	if (!user) { user = User_GetName(); }
 	if (!gardenlist) {gardenlist = GARDENS;}
@@ -100,10 +114,8 @@ export function Garden_IsLinked(garden)
 // these should all be server-side!
 
 // Claim a tile, adding it to the nearest garden
-export function Garden_ClaimTile()
+export function Garden_ClaimTile(x, y)
 {
-	let y = SEL_YTILE;
-	let x = SEL_XTILE;
 	// if it's a right tile, buy the left tile instead
 	if ((y % 2) ^ !(x % 2)) { x -= 1; }
 	// temporary whatever
@@ -133,7 +145,7 @@ export function Garden_ClaimCoreTile()
 	const newgarden = {
 		"owners": [user],
 		"name": "New Garden",
-		"color": d3.hsl(getRandomInt(0, 360), 0.4, 0.8),
+		"color": d3_hsl(getRandomInt(0, 360), 0.4, 0.8),
 		"tiles": [{
 			"name": "New Site Link",
 			"x": SEL_XTILE,
@@ -164,7 +176,7 @@ export function Garden_SellTile()
 
 	// if that was a core tile, kill the whole garden
 	if (tile.is_core) {
-		index = GARDENS.indexOf(garden);
+		let index = GARDENS.indexOf(garden);
 		GARDENS.splice(index, 1);
 
 		for (let subtile of garden.tiles) {
@@ -185,8 +197,6 @@ export function Garden_SellTile()
 			Quota_Change_AnyTile(1);
 		}
 	}
-
-
 
 	// Refresh info panel
 	Info_Show();

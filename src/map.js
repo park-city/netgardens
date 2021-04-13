@@ -17,11 +17,13 @@
     If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-	Gardens_LoadFromJSON,
-	Garden_GetAtTile,
-	Garden_IsLinked
-} from './garden.js'
+import { color as d3_color } from 'd3-color';
+import { text as d3_text } from 'd3-fetch';
+import { csvParseRows } from 'd3-dsv';
+
+import { Gardens_LoadFromJSON, Garden_GetAtTile, Garden_IsLinked, GARDENS, Gardens_Set } from './garden.js';
+import { mod, resize_canvas } from './helpers.js';
+import { Info_Hide, Info_Show } from './ui.js';
 
 /// Global Variables ///////////////////////////////////////////////////////////
 // this is probably bad form. whatever.
@@ -29,9 +31,9 @@ import {
 let X_POS       = 0;          // Map scroll offset, X
 let Y_POS       = 0;          // Map scroll offset, Y
 // graphics sizes
-let X_TILESIZE  = 64;         // x size of tile footprint in tileset
-let Y_TILESIZE  = 64;         // y size of tile footprint in tileset (gfx are twice this height)
-let SCALE       = 1;          // Global graphics scalar
+export let X_TILESIZE  = 64;         // x size of tile footprint in tileset
+export let Y_TILESIZE  = 64;         // y size of tile footprint in tileset (gfx are twice this height)
+export let SCALE       = 1;          // Global graphics scalar
 // time
 let TIME_START  = 0;          // Time at program start
 let TIME_LAST   = 0;          // Time at last frame
@@ -47,73 +49,32 @@ let SCROLLTO = false;         // Set true if autoscrolling to a tile
 let SCROLLTO_X = 0;           // Target tile for autoscroll, X
 let SCROLLTO_Y = 0;           // Target tile for autoscroll, Y
 // tile cursor
-let SEL_XTILE = 0;            // Selected tile, X
-let SEL_YTILE = 0;            // Selected tile, Y
-let SEL_VISIBLE = false;      // Selection active flag
-let MOUSE_XTILE = 0;          // Tile under mouse, X
-let MOUSE_YTILE = 0;          // Tile under mouse, Y
+export let SEL_XTILE = 0;            // Selected tile, X
+export let SEL_YTILE = 0;            // Selected tile, Y
+export let SEL_VISIBLE = false;      // Selection active flag
+export let MOUSE_XTILE = 0;          // Tile under mouse, X
+export let MOUSE_YTILE = 0;          // Tile under mouse, Y
 // overlays
 let GARDEN_OVERLAY = false;   // Garden overlay flag
 let DEBUG_OVERLAY = false;    // Debug overlay flag
 // loaded data
-let SPR = [];                 // tile sprites
-let MAP = [];                 // map data
-let GARDENS = [];             // gardens in current park
-let OVERLAYS = {};            // 88x31 button graphics
+export let SPR = [];                 // tile sprites
+export let MAP = [];                 // map data
+export let OVERLAYS = {};            // 88x31 button graphics
 // canvas information
 let CANVAS_BG = null;         // display canvas reference
 let CTX_BG = null;            // display context
 let BG_RERENDER = false;      // if true, rerender entire background
 
-/// Utility functions //////////////////////////////////////////////////////////
-
-// https://stackoverflow.com/a/24137301
-Array.prototype.random = function () {
-	return this[Math.floor((Math.random()*this.length))];
-}
-
-// https://stackoverflow.com/a/17323608
-function mod(n, m) {
-	return ((n % m) + m) % m;
-}
-
-// https://stackoverflow.com/a/10215724
-function resize_canvas(){
-	// primary canvas
-	const canvas = document.getElementById('mapcanvas');
-	if (!canvas.getContext) { return; }
-	// Make it visually fill the positioned parent
-	canvas.style.width ='100%';
-	canvas.style.height='100%';
-	// ...then set the internal size to match
-	canvas.width  = canvas.offsetWidth;
-	canvas.height = canvas.offsetHeight;
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
-/**
- * Returns a random integer between min (inclusive) and max (inclusive).
- * The value is no lower than min (or the next integer greater than min
- * if min isn't an integer) and no greater than max (or the next integer
- * lower than max if max isn't an integer).
- * Using Math.round() will give you a non-uniform distribution!
- */
-function getRandomInt(min, max) {
-	min = Math.ceil(min);
-	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-// euclidian distance
-function distance(x1, y1, x2, y2)
-{
-	return Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-}
-
 /// (uncategorized) ////////////////////////////////////////////////////////////
 
+// Get current selection position
+export function Map_GetSelPos() {
+	return [SEL_XTILE, SEL_YTILE];
+}
+
 // Autoscroll tick
-function Map_DoAutoScroll(t)
+export function Map_DoAutoScroll(t)
 {
 	if (AUTOSCROLL == false) { return; }
 	X_POS += AUTOSCROLL_DX * t;
@@ -121,7 +82,7 @@ function Map_DoAutoScroll(t)
 }
 
 // Set autoscroll speed
-function Map_SetAutoScroll(dx, dy)
+export function Map_SetAutoScroll(dx, dy)
 {
 	AUTOSCROLL = (dx != 0 && dy != 0);
 	AUTOSCROLL_DX = dx;
@@ -129,20 +90,20 @@ function Map_SetAutoScroll(dx, dy)
 }
 
 // Toggle garden overlay flag and return new value
-function Garden_ToggleOverlay()
+export function Garden_ToggleOverlay()
 {
 	GARDEN_OVERLAY = !GARDEN_OVERLAY;
 	return GARDEN_OVERLAY;
 }
 // Get current value of garden overlay flag
-function Garden_OverlayActive()
+export function Garden_OverlayActive()
 {
 	return GARDEN_OVERLAY;
 }
 
 // Determine which tile a given mouse coord falls under
 // this is complicated
-function Coord_Lookup(x, y)
+export function Coord_Lookup(x, y)
 {
 	x += X_POS;
 	y += Y_POS;
@@ -192,45 +153,17 @@ function Coord_Lookup(x, y)
 }
 
 // Get the tile at the center of the display
-function Coord_Lookup_Center()
+export function Coord_Lookup_Center()
 {
 	const canvas = document.getElementById('mapcanvas');
 	return Coord_Lookup(canvas.width/2, canvas.height/2);
 }
 
-// get an array of tiles to be rendered onto the screen
-// this is a big temporary hack
-function Map_MakeRandom(w, h)
-{
-	let map = [];
-	const num_tiles = Math.floor(SPR.length / 2) - 1;
-	let tile = 0;
-	for(let y = 0; y < h; y += 1) {
-		let row = [];
-		tile = getRandomInt(0, num_tiles) * 2;
-		for (let x = 0; x < w; x += 1) {
-			if ((x == w-1) && ((y % 2) == 0)) {
-				// match tile edges to be seamless
-				// (not needed for finite maps)
-				tile = row[0]-1;
-			} else if (!((x % 2) ^ (y % 2))) {
-				tile += 1;
-				if (tile >= SPR.length) { tile = 0; }
-			} else {
-				tile = getRandomInt(0, num_tiles) * 2;
-			}
-			row.push(tile);
-		}
-		map.push(row);
-	}
-	return map;
-}
-
 async function Map_LoadFromCSV(url)
 {
-	return d3.text(url)
+	return d3_text(url)
 	.then((raw) => {
-		return d3.csvParseRows(raw);
+		return csvParseRows(raw);
 	}).then((data) => {
 		// temporary haxx to convert from per-tile to per-tri
 		data = data.map((row,y,a) => {
@@ -297,11 +230,11 @@ function Gardens_CacheGfx(gardens)
 }
 
 // Render ownership overlay for a single tile
-function Render_FG_Overlay_Single(ctx, x, y, tile, color)
+export function Render_FG_Overlay_Single(ctx, x, y, tile, color)
 {
 	// garden overlay
 	if (GARDEN_OVERLAY && color) {
-		let color_alpha = d3.color(color);
+		let color_alpha = d3_color(color);
 		color_alpha.opacity = 0.75;
 		ctx.fillStyle = color_alpha.toString();
 		ctx.strokeStyle = "transparent";
@@ -338,7 +271,7 @@ function Render_FG_Overlay(ctx)
 }
 
 // Renders literally just the 88x31 button, and nothing else
-function Render_FG_SiteLink_Single_Raw(ctx, dx, dy, tile, color)
+export function Render_FG_SiteLink_Single_Raw(ctx, dx, dy, tile, color)
 {
 	const w = 88 * SCALE;
 	const h = 31 * SCALE;
@@ -360,7 +293,7 @@ function Render_FG_SiteLink_Single_Raw(ctx, dx, dy, tile, color)
 }
 
 // Render 88x31 button for a single tile
-function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
+export function Render_FG_SiteLink_Single(ctx, x, y, tile, color)
 {
 	const w = 88 * SCALE;
 	const h = 31 * SCALE;
@@ -494,7 +427,7 @@ function Render_BG_Tile_noimg(ctx, x, y, xi, yi)
 	ctx.stroke();
 }
 
-function Render_BG_Tile(ctx, x, y, tile) {
+export function Render_BG_Tile(ctx, x, y, tile) {
 	ctx.drawImage(SPR[tile], x, y, X_TILESIZE*SCALE, 2*Y_TILESIZE*SCALE);
 }
 
@@ -648,15 +581,15 @@ function Render_Step(timestamp)
 }
 
 // Load map data
-async function Map_Init(tileset_url, tilemap_url, gardenset_url)
+export async function Map_Init(tileset_url, tilemap_url, gardenset_url)
 {
 	return Map_CacheGfx(tileset_url)
 	.then(() => {
 		return Gardens_LoadFromJSON(gardenset_url);
 	})
 	.then((gardens) => {
-		GARDENS = gardens;
-		Gardens_CacheGfx(gardens);
+		Gardens_Set(gardens);
+		Gardens_CacheGfx(GARDENS);
 		return Map_LoadFromCSV(tilemap_url);
 	})
 	.then((map) => {
@@ -728,7 +661,7 @@ function Map_UpdateCursor(e)
 	const y = e.clientY;
 	const canvas = document.getElementById('mapcanvas');
 	const tile = Coord_Lookup(x, y);
-	const garden = Garden_GetAtTile(GARDENS, tile.x, tile.y);
+	const garden = Garden_GetAtTile(tile.x, tile.y);
 
 	MOUSE_XTILE = tile.x;
 	MOUSE_YTILE = tile.y;
