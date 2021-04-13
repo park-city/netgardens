@@ -1,5 +1,7 @@
 'use strict'
 // Functions related to gardens/occupied tiles
+import {json} from 'd3-fetch';
+import {hsl} from 'd3-color';
 
 /// Helper functions for rendering, UI, etc. ///////////////////////////////////
 
@@ -10,7 +12,7 @@ export async function Gardens_LoadFromJSON(url)
 }
 
 // Get the garden at a specific tile
-export function Garden_GetAtTile(x, y)
+export function Garden_GetAtTile(GARDENS, x, y)
 {
 	for (let garden of GARDENS) {
 		for (let tile of garden.tiles) {

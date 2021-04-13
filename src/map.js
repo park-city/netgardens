@@ -17,7 +17,11 @@
     If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {Gardens_LoadFromJSON, Garden_GetAtTile} from './garden.js'
+import {
+	Gardens_LoadFromJSON,
+	Garden_GetAtTile,
+	Garden_IsLinked
+} from './garden.js'
 
 /// Global Variables ///////////////////////////////////////////////////////////
 // this is probably bad form. whatever.
@@ -724,7 +728,7 @@ function Map_UpdateCursor(e)
 	const y = e.clientY;
 	const canvas = document.getElementById('mapcanvas');
 	const tile = Coord_Lookup(x, y);
-	const garden = Garden_GetAtTile(tile.x, tile.y);
+	const garden = Garden_GetAtTile(GARDENS, tile.x, tile.y);
 
 	MOUSE_XTILE = tile.x;
 	MOUSE_YTILE = tile.y;
