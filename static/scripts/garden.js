@@ -1,15 +1,16 @@
+'use strict'
 // Functions related to gardens/occupied tiles
 
 /// Helper functions for rendering, UI, etc. ///////////////////////////////////
 
 // Load a list of gardens from a JSON file
-async function Gardens_LoadFromJSON(url)
+export async function Gardens_LoadFromJSON(url)
 {
 	return d3.json(url);
 }
 
 // Get the garden at a specific tile
-function Garden_GetAtTile(x, y)
+export function Garden_GetAtTile(x, y)
 {
 	for (let garden of GARDENS) {
 		for (let tile of garden.tiles) {
@@ -24,7 +25,7 @@ function Garden_GetAtTile(x, y)
 }
 
 // find all gardens owned by some user
-function Gardens_OwnedBy(user, gardenlist)
+export function Gardens_OwnedBy(user, gardenlist)
 {
 	if (!user) { user = User_GetName(); }
 	if (!gardenlist) {gardenlist = GARDENS;}
@@ -32,7 +33,7 @@ function Gardens_OwnedBy(user, gardenlist)
 }
 
 // sort gardens by distance from selection
-function Gardens_SortDistance(gardenlist, x, y)
+export function Gardens_SortDistance(gardenlist, x, y)
 {
 	if (!gardenlist) {gardenlist = GARDENS;}
 	if (!x) { x = SEL_XTILE; }
@@ -52,7 +53,7 @@ function Gardens_SortDistance(gardenlist, x, y)
 }
 
 // Get distance between selection and nearest garden
-function Gardens_GetNearestOwned(user, gardenlist)
+export function Gardens_GetNearestOwned(user, gardenlist)
 {
 	if (!user) { user = User_GetName(); }
 	let owned = Gardens_OwnedBy(user, gardenlist);
@@ -61,7 +62,7 @@ function Gardens_GetNearestOwned(user, gardenlist)
 }
 
 // Get nearest owned gardens, sorted by distance
-function Gardens_GetNearestOwned_Dist(user, gardenlist)
+export function Gardens_GetNearestOwned_Dist(user, gardenlist)
 {
 	if (!user) { user = User_GetName(); }
 	let nearest = Gardens_GetNearestOwned(user, gardenlist);
@@ -78,7 +79,7 @@ function Gardens_GetNearestOwned_Dist(user, gardenlist)
 
 // Determine if a garden contains a link of some sort
 // yes, this looks a bit noobish. prevents returning undefined.
-function Garden_IsLinked(garden)
+export function Garden_IsLinked(garden)
 {
 	if (!garden) { return false; }
 	if (garden.tile) {
@@ -97,7 +98,7 @@ function Garden_IsLinked(garden)
 // these should all be server-side!
 
 // Claim a tile, adding it to the nearest garden
-function Garden_ClaimTile()
+export function Garden_ClaimTile()
 {
 	let y = SEL_YTILE;
 	let x = SEL_XTILE;
@@ -123,7 +124,7 @@ function Garden_ClaimTile()
 }
 
 // Claim a "core tile", starting a new garden
-function Garden_ClaimCoreTile()
+export function Garden_ClaimCoreTile()
 {
 	// temporary whatever
 	const user = User_GetName();
@@ -153,7 +154,7 @@ function Garden_ClaimCoreTile()
 }
 
 // Sell a tile from a garden (using the tile currently selected)
-function Garden_SellTile()
+export function Garden_SellTile()
 {
 	let garden_obj = Garden_GetAtTile(SEL_XTILE, SEL_YTILE);
 	let garden = garden_obj.garden;

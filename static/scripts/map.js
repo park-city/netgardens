@@ -17,6 +17,8 @@
     If not, see <https://www.gnu.org/licenses/>.
 */
 
+import {Gardens_LoadFromJSON, Garden_GetAtTile} from './garden.js'
+
 /// Global Variables ///////////////////////////////////////////////////////////
 // this is probably bad form. whatever.
 // position
@@ -734,7 +736,7 @@ function Map_UpdateCursor(e)
 }
 
 /// Init ///////////////////////////////////////////////////////////////////////
-function Render_Init()
+export function init()
 {
 	// get BG canvas
 	CANVAS_BG = document.getElementById('bg0');
@@ -759,5 +761,3 @@ function Render_Init()
 	// on each frame
 	window.requestAnimationFrame(Render_Step);
 }
-
-document.addEventListener("DOMContentLoaded", (event) => Render_Init());

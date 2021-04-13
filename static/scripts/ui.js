@@ -590,86 +590,88 @@ function Nav_UpdateLogin()
 }
 
 // init
-document.addEventListener("DOMContentLoaded", (event) =>
-{
-	/// load map data (async) ///
-	Parks_GetInfo().then((parks) => {
-		PARKS = parks;
-		let default_park = PARKS[PARKS_DEFAULT];
-		Map_Init(
-			default_park.tiles,
-			default_park.map,
-			default_park.gardens
-		);
-	}).then(() => {
-		Map_SetAutoScroll(0.5, 0.5); // set demo autoscroll
-		ParkSel_Register(); // Register park selection list
-	});
-
-	/// set sidebar events ///
-	Info_SetID("sidebars");
-
-	// collapsable sidebar(s)
-	for(let e of document.getElementsByClassName('collapsebtn')) {
-		e.addEventListener('pointerup', (event) => {
-			Info_Hide();
+export function init() {
+	document.addEventListener("DOMContentLoaded", (event) =>
+	{
+		/// load map data (async) ///
+		Parks_GetInfo().then((parks) => {
+			PARKS = parks;
+			let default_park = PARKS[PARKS_DEFAULT];
+			Map_Init(
+				default_park.tiles,
+				default_park.map,
+				default_park.gardens
+			);
+		}).then(() => {
+			Map_SetAutoScroll(0.5, 0.5); // set demo autoscroll
+			ParkSel_Register(); // Register park selection list
 		});
-	}
 
-	// hide splash on click
-	let splash = document.getElementsByClassName('advertise')[0];
-	let splash_close = splash.querySelector("[data-id='close']");
-	splash_close.addEventListener('pointerup', (event) => {
-		splash.classList.add('hidden');
-	});
+		/// set sidebar events ///
+		Info_SetID("sidebars");
 
-	// resize canvas on window resize
-	window.addEventListener('resize', () => { resize_canvas(); });
+		// collapsable sidebar(s)
+		for(let e of document.getElementsByClassName('collapsebtn')) {
+			e.addEventListener('pointerup', (event) => {
+				Info_Hide();
+			});
+		}
 
-	/// navbar actions ///
-	let navbar = document.getElementsByTagName("nav")[0];
+		// hide splash on click
+		let splash = document.getElementsByClassName('advertise')[0];
+		let splash_close = splash.querySelector("[data-id='close']");
+		splash_close.addEventListener('pointerup', (event) => {
+			splash.classList.add('hidden');
+		});
 
-	// logo: show splash screen
-	let nav_ngo = navbar.querySelector("[data-id='logo']");
-	nav_ngo.addEventListener('pointerup', (e) => {
-		e.preventDefault();
-		splash.classList.remove('hidden');
-	});
+		// resize canvas on window resize
+		window.addEventListener('resize', () => { resize_canvas(); });
 
-	// park name: show park selector
-	let nav_parksel = navbar.querySelector("[data-id='parksel']");
-	nav_parksel.addEventListener('pointerup', (e) => {
-		e.preventDefault();
-		ParkSel_Show();
-	});
+		/// navbar actions ///
+		let navbar = document.getElementsByTagName("nav")[0];
 
-	// 🔍: toggle overlay
-	let nav_overlay = navbar.querySelector("[data-id='overlay']");
-	nav_overlay.addEventListener('pointerup', (e) => {
-		e.preventDefault();
-		Nav_ToggleOverlay();
-	});
-	// and set the active state just in case
-	if (Garden_OverlayActive()) {
-		nav_overlay.classList.add("active");
-	}
+		// logo: show splash screen
+		let nav_ngo = navbar.querySelector("[data-id='logo']");
+		nav_ngo.addEventListener('pointerup', (e) => {
+			e.preventDefault();
+			splash.classList.remove('hidden');
+		});
 
-	// 📃: browse sites/gardens
-	let nav_browse = navbar.querySelector("[data-id='browse']");
-	nav_browse.addEventListener('pointerup', (e) => {
-		e.preventDefault();
-		SiteList_Show();
-	});
+		// park name: show park selector
+		let nav_parksel = navbar.querySelector("[data-id='parksel']");
+		nav_parksel.addEventListener('pointerup', (e) => {
+			e.preventDefault();
+			ParkSel_Show();
+		});
 
-	// login: set user name and pic accordingly
-	Nav_UpdateLogin();
-	let nav_login = navbar.querySelector("[data-id='login']")
-	nav_login.addEventListener('pointerup', (e) => {
-		e.preventDefault();
-		// debugging logging in and out
-		if (!USER) { USER = "invis"; }
-		else { USER = null; }
+		// 🔍: toggle overlay
+		let nav_overlay = navbar.querySelector("[data-id='overlay']");
+		nav_overlay.addEventListener('pointerup', (e) => {
+			e.preventDefault();
+			Nav_ToggleOverlay();
+		});
+		// and set the active state just in case
+		if (Garden_OverlayActive()) {
+			nav_overlay.classList.add("active");
+		}
+
+		// 📃: browse sites/gardens
+		let nav_browse = navbar.querySelector("[data-id='browse']");
+		nav_browse.addEventListener('pointerup', (e) => {
+			e.preventDefault();
+			SiteList_Show();
+		});
+
+		// login: set user name and pic accordingly
 		Nav_UpdateLogin();
-		Info_Hide();
-	})
-});
+		let nav_login = navbar.querySelector("[data-id='login']")
+		nav_login.addEventListener('pointerup', (e) => {
+			e.preventDefault();
+			// debugging logging in and out
+			if (!USER) { USER = "invis"; }
+			else { USER = null; }
+			Nav_UpdateLogin();
+			Info_Hide();
+		})
+	});
+}
